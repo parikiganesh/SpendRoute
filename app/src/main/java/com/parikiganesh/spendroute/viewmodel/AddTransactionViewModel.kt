@@ -1,0 +1,202 @@
+package com.parikiganesh.spendroute.viewmodel
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.parikiganesh.spendroute.data.model.Transaction
+import com.parikiganesh.spendroute.data.model.TransactionType
+import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
+import com.parikiganesh.spendroute.repository.TransactionRepository
+import com.parikiganesh.spendroute.utils.DateTimeUtils
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+/**
+ * AddTransactionViewModel manages the form state and business logic for adding/editing transactions.
+ * Follows MVVM pattern by separating UI state from presentation logic.
+ */
+data class AddTransactionFormState(
+    val amount: String = "",
+    val selectedCategory: String? = null,
+    val note: String = "",
+    val selectedDate: String = "", // Will be set to current date in ViewModel init
+    val transactionType: TransactionType = TransactionType.EXPENSE,
+    val isLoading: Boolean = false,
+    val validationError: String? = null,
+    val isFormValid: Boolean = false
+)
+
+class AddTransactionViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val database = SpendRouteDatabase.getDatabase(application)
+    private val repository = TransactionRepository(database.transactionDao())
+
+    // Form state
+    private val _formState = MutableStateFlow(AddTransactionFormState(selectedDate = DateTimeUtils.getCurrentDate()))
+    val formState: StateFlow<AddTransactionFormState> = _formState.asStateFlow()
+
+    /**
+     * Update the amount field and revalidate form
+     */
+    fun updateAmount(amount: String) {
+        _formState.value = _formState.value.copy(amount = amount)
+        validateForm()
+    }
+
+    /**
+     * Update the selected category and revalidate form
+     */
+    fun updateCategory(category: String?) {
+        _formState.value = _formState.value.copy(selectedCategory = category)
+        validateForm()
+    }
+
+    /**
+     * Update the note field
+     */
+    fun updateNote(note: String) {
+        _formState.value = _formState.value.copy(note = note)
+    }
+
+    /**
+     * Update the selected date
+     */
+    fun updateDate(date: String) {
+        _formState.value = _formState.value.copy(selectedDate = date)
+    }
+
+    /**
+     * Switch between Income and Expense and reset form
+     */
+    fun switchTransactionType(type: TransactionType) {
+        _formState.value = AddTransactionFormState(
+            transactionType = type,
+            selectedDate = DateTimeUtils.getCurrentDate()
+        )
+        validateForm()
+    }
+
+    /**
+     * Validate form and update validation state
+     */
+    private fun validateForm() {
+        val state = _formState.value
+        val isValid = state.amount.isNotEmpty() &&
+                state.selectedCategory != null &&
+                state.amount.toDoubleOrNull() != null &&
+                state.amount.toDouble() > 0
+
+        _formState.value = state.copy(
+            isFormValid = isValid,
+            validationError = when {
+                state.amount.isEmpty() -> null
+                state.selectedCategory == null -> null
+                state.amount.toDoubleOrNull() == null -> "Invalid amount format"
+                state.amount.toDouble() <= 0 -> "Amount must be greater than 0"
+                else -> null
+            }
+        )
+    }
+
+    /**
+     * Save a new transaction
+     */
+    fun saveTransaction() {
+        val state = _formState.value
+        if (!state.isFormValid) {
+            _formState.value = state.copy(validationError = "Please fill in all required fields")
+            return
+        }
+
+        _formState.value = state.copy(isLoading = true)
+
+        val transaction = Transaction(
+            id = System.currentTimeMillis().toString(),
+            title = state.selectedCategory!!,
+            category = state.selectedCategory,
+            amount = state.amount.toDouble(),
+            date = state.selectedDate,
+            time = DateTimeUtils.getCurrentTime(),
+            note = state.note.ifEmpty { null },
+            isIncome = state.transactionType == TransactionType.INCOME
+        )
+
+        viewModelScope.launch {
+            try {
+                repository.insertTransaction(transaction)
+                _formState.value = AddTransactionFormState(
+                    selectedDate = DateTimeUtils.getCurrentDate()
+                )
+            } catch (e: Exception) {
+                _formState.value = state.copy(
+                    isLoading = false,
+                    validationError = "Error saving transaction: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Update an existing transaction
+     */
+    fun updateTransaction(id: String) {
+        val state = _formState.value
+        if (!state.isFormValid) {
+            _formState.value = state.copy(validationError = "Please fill in all required fields")
+            return
+        }
+
+        _formState.value = state.copy(isLoading = true)
+
+        val transaction = Transaction(
+            id = id,
+            title = state.selectedCategory!!,
+            category = state.selectedCategory,
+            amount = state.amount.toDouble(),
+            date = state.selectedDate,
+            time = DateTimeUtils.getCurrentTime(),
+            note = state.note.ifEmpty { null },
+            isIncome = state.transactionType == TransactionType.INCOME
+        )
+
+        viewModelScope.launch {
+            try {
+                repository.updateTransaction(transaction)
+                _formState.value = AddTransactionFormState(
+                    selectedDate = DateTimeUtils.getCurrentDate()
+                )
+            } catch (e: Exception) {
+                _formState.value = state.copy(
+                    isLoading = false,
+                    validationError = "Error updating transaction: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Pre-populate form with transaction data for editing
+     */
+    fun prepareEditTransaction(transaction: Transaction) {
+        _formState.value = AddTransactionFormState(
+            amount = transaction.amount.toString(),
+            selectedCategory = transaction.category,
+            note = transaction.note ?: "",
+            selectedDate = transaction.date,
+            transactionType = if (transaction.isIncome) TransactionType.INCOME else TransactionType.EXPENSE
+        )
+        validateForm()
+    }
+
+    /**
+     * Reset form to initial state
+     */
+    fun resetForm() {
+        _formState.value = AddTransactionFormState(
+            selectedDate = DateTimeUtils.getCurrentDate()
+        )
+    }
+}
+
