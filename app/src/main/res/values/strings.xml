@@ -1,0 +1,140 @@
+<resources>
+    <string name="app_name">SpendRoute</string>
+
+    <!-- Add Transaction Screen -->
+    <string name="add_income">Add income</string>
+    <string name="add_expense">Add expense</string>
+    <string name="edit_income">Edit income</string>
+    <string name="edit_expense">Edit expense</string>
+    <string name="record_earnings">Record your earnings</string>
+    <string name="record_spending">Record your spending</string>
+    <string name="update_transaction_details">Update transaction details</string>
+    <string name="expense">Expense</string>
+    <string name="income">Income</string>
+    <string name="minus_expense">- Expense</string>
+    <string name="plus_income">+ Income</string>
+    <string name="amount">Amount</string>
+    <string name="currency">Rs.</string>
+    <string name="enter_amount">Enter amount</string>
+    <string name="source">Source</string>
+    <string name="note_optional">Note (optional)</string>
+    <string name="note_placeholder_income">e.g. Freelance project</string>
+    <string name="note_placeholder_expense">e.g. Dinner with friends</string>
+    <string name="date">Date</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save_income">Save income</string>
+    <string name="save_expense">Save expense</string>
+    <string name="update_income">Update income</string>
+    <string name="update_expense">Update expense</string>
+    <string name="transaction_saved">Transaction saved successfully!</string>
+    <string name="transaction_updated">Transaction updated successfully!</string>
+
+    <!-- Transactions Screen -->
+    <string name="transactions">Transactions</string>
+    <string name="income_expenses">Income &amp; expenses in one place</string>
+    <string name="search_transactions">Search transactions...</string>
+    <string name="filter_all">All</string>
+    <string name="filter_income">Income</string>
+    <string name="filter_expense">Expense</string>
+    <string name="no_transactions_found">No transactions found</string>
+    <string name="transaction_deleted">Transaction deleted successfully!</string>
+    <string name="recent">Recent</string>
+    <string name="see_all">See all</string>
+    <string name="delete_transaction_message">Are you sure you want to delete this transaction? This action cannot be undone.</string>
+    <string name="continue_button">Continue</string>
+    <string name="edit">Edit</string>
+
+    <!-- Profile Screen -->
+    <string name="profile">Profile</string>
+    <string name="tracking_since">Tracking since %s</string>
+    <string name="preferences">Preferences</string>
+    <string name="notifications">Notifications</string>
+    <string name="reminders_time">Reminders at 9:00 AM &amp; 6:00 PM daily</string>
+    <string name="notifications_desc">Reminders at 9:00 AM &amp; 6:00 PM daily</string>
+    <string name="data">Data</string>
+    <string name="export_data">Export Data</string>
+    <string name="export_icon_desc">Export</string>
+    <string name="clear_all_data">Clear all data</string>
+    <string name="clear_icon_desc">Clear</string>
+    <string name="about">About</string>
+    <string name="app_version">App version</string>
+    <string name="privacy_policy">Privacy &amp; Policy</string>
+    <string name="privacy_icon_desc">Privacy</string>
+    <string name="export_title">Export Transactions</string>
+    <string name="export_message">Choose format to export your transactions</string>
+    <string name="exporting_csv">Exporting as CSV...</string>
+    <string name="csv">CSV</string>
+    <string name="exporting_pdf">Exporting as PDF...</string>
+    <string name="pdf">PDF</string>
+    <string name="clear_data_title">Clear all data?</string>
+    <string name="clear_data_message">This will delete all your transactions and reset the app.</string>
+    <string name="delete">Delete</string>
+    <string name="deleting_data">Deleting data...</string>
+    <string name="data_restored">Data restored</string>
+    <string name="undo">Undo</string>
+    <string name="privacy_content">Your data never leaves your device. We don\'t collect, store, or share any personal information.\n\nAll transactions and financial data are stored locally on your device only. SpendRoute does not have access to any of your data.\n\nYour privacy is important to us. This app is designed to work completely offline without any internet connection required.</string>
+    <string name="notifications_enabled">Notifications enabled</string>
+    <string name="notification_permission_denied">Notification permission denied.</string>
+    <string name="notifications_disabled">Notifications disabled</string>
+
+    <!-- Analytics Screen -->
+    <string name="analytics">Analytics</string>
+    <string name="insights">Your spending insights</string>
+    <string name="income_vs_expense">Income vs Expense</string>
+    <string name="expense_by_category">Expense by category</string>
+    <string name="monthly">Monthly</string>
+    <string name="yearly">Yearly</string>
+    <string name="total_income">Total income</string>
+    <string name="total_expense">Total expense</string>
+    <string name="vs_last_month">vs last month</string>
+    <string name="vs_last_year">vs last year</string>
+    <string name="income_vs_expense_title">Income vs Expense</string>
+    <string name="last_6_months">Last 6 months</string>
+    <string name="no_data_available">No data available</string>
+    <string name="income_legend">Income</string>
+    <string name="expense_legend">Expense</string>
+    <string name="no_expenses_yet">No expenses yet</string>
+
+
+    <!-- Home Screen -->
+    <string name="home">Home</string>
+    <string name="good_morning">Good morning</string>
+    <string name="net_balance">NET BALANCE — %s</string>
+    <string name="recent_transactions">Recent transactions</string>
+
+    <!-- Navigation Bar -->
+    <string name="tab_home">Home</string>
+    <string name="tab_transactions">Transactions</string>
+    <string name="tab_add">Add</string>
+    <string name="tab_analytics">Analytics</string>
+    <string name="tab_profile">Profile</string>
+
+    <!-- Splash Screen -->
+    <string name="spendroute_logo_desc">SpendRoute Logo</string>
+    <string name="app_name_display">SpendRoute</string>
+    <string name="app_tagline">Track your expenses smartly</string>
+    <string name="app_features">Offline · Secure · Private</string>
+
+    <!-- Onboarding Screen -->
+    <string name="welcome_to_spendroute">Welcome to SpendRoute!</string>
+    <string name="track_smarter_spend_better">Track smarter, spend better</string>
+    <string name="what_should_we_call_you">What should we call you?</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="delete_transaction_title">Delete Transaction?</string>
+    <string name="transaction_details">Transaction Details</string>
+    <string name="time">Time</string>
+    <string name="notes">Notes</string>
+
+    <!-- Gesture Hint Dialog -->
+    <string name="gesture_hint_title">💡 Quick Tip</string>
+    <string name="gesture_hint_description">Here\'s how to manage your transactions</string>
+    <string name="gesture_swipe_label">Swipe Left</string>
+    <string name="gesture_swipe_description">Edit or delete a transaction</string>
+    <string name="gesture_tap_label">Tap</string>
+    <string name="gesture_tap_description">View full details in a sheet</string>
+    <string name="gesture_hint_button">Got it!</string>
+
+    <string name="close">Close</string>
+
+</resources>
