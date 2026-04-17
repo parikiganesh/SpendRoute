@@ -15,6 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -83,7 +88,7 @@ fun AddTransactionScreen(
     // Collect form state from ViewModel
     val formState = viewModel.formState.collectAsState()
     val state = formState.value
-    
+
     // Initialize form with transaction data if editing
     LaunchedEffect(transactionToEdit) {
         if (transactionToEdit != null) {
@@ -92,7 +97,7 @@ fun AddTransactionScreen(
             viewModel.resetForm()
         }
     }
-    
+
     // Date picker state (UI-only local state)
     val showDatePicker = remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
@@ -198,7 +203,7 @@ fun AddTransactionScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.amount),
-                            style = LocalTypography.current.bodySmallNormal,
+                            style = LocalTypography.current.bodyLargeNormal,
                             color = Color.DarkGray
                         )
                         Row(
@@ -261,13 +266,18 @@ fun AddTransactionScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.source),
-                            style = LocalTypography.current.bodySmallNormal,
+                            style = LocalTypography.current.bodyLargeNormal,
                             color = Color.DarkGray
                         )
+                        
+                        val categoryScrollState = rememberLazyListState()
+                        
                         LazyRow(
+                            state = categoryScrollState,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 12.dp),
+                                .padding(top = 12.dp)
+                                .padding(bottom = 12.dp), // Space for indicator
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(categories) { category ->
@@ -297,7 +307,7 @@ fun AddTransactionScreen(
                                         Text(
                                             text = category.name,
                                             style = LocalTypography.current.bodySmallNormal,
-                                            color = Color(0xFF5B4B9B),
+                                            color = Color.Black,
                                             fontSize = 12.sp,
                                             textAlign = TextAlign.Center
                                         )
@@ -305,6 +315,52 @@ fun AddTransactionScreen(
                                 }
                             }
                         }
+                        
+                        // Custom Scroll Indicator / Bar
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .background(Color(0xFFEEEEEE), RoundedCornerShape(2.dp))
+                                .drawWithContent {
+                                    drawContent()
+                                    
+                                    val layoutInfo = categoryScrollState.layoutInfo
+                                    val visibleItems = layoutInfo.visibleItemsInfo
+                                    
+                                    if (visibleItems.isNotEmpty()) {
+                                        val viewportWidth = layoutInfo.viewportEndOffset.toFloat() - layoutInfo.viewportStartOffset.toFloat()
+                                        
+                                        // Total content width calculation
+                                        // We use the last item's end offset as the total content width
+                                        val totalItems = layoutInfo.totalItemsCount
+                                        val lastItem = visibleItems.last()
+                                        val firstItem = visibleItems.first()
+                                        
+                                        // Estimate total width if not all items are visible
+                                        val averageItemSize = (lastItem.offset + lastItem.size - firstItem.offset).toFloat() / visibleItems.size
+                                        val contentWidth = averageItemSize * totalItems
+                                        
+                                        if (contentWidth > viewportWidth) {
+                                            val indicatorWidth = (viewportWidth / contentWidth) * viewportWidth
+                                            
+                                            // Calculate scroll progress based on the current scroll position
+                                            val scrollOffset = categoryScrollState.firstVisibleItemIndex * averageItemSize + categoryScrollState.firstVisibleItemScrollOffset
+                                            val maxScrollOffset = contentWidth - viewportWidth
+                                            
+                                            val scrollProgress = if (maxScrollOffset > 0) (scrollOffset / maxScrollOffset).coerceIn(0f, 1f) else 0f
+                                            val indicatorOffset = scrollProgress * (viewportWidth - indicatorWidth)
+                                            
+                                            drawRoundRect(
+                                                color = Color(0xFF5B4B9B),
+                                                topLeft = Offset(indicatorOffset, 0f),
+                                                size = Size(indicatorWidth, size.height),
+                                                cornerRadius = CornerRadius(2.dp.toPx())
+                                            )
+                                        }
+                                    }
+                                }
+                        )
                     }
                 }
             }
@@ -329,7 +385,7 @@ fun AddTransactionScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.note_optional),
-                            style = LocalTypography.current.bodySmallNormal,
+                            style = LocalTypography.current.bodyLargeNormal,
                             color = Color.DarkGray
                         )
                         TextField(
@@ -341,7 +397,7 @@ fun AddTransactionScreen(
                             placeholder = {
                                 Text(
                                     text = notePlaceholder,
-                                    style = LocalTypography.current.bodyMediumRegular,
+                                    style = LocalTypography.current.bodyLargeNormal,
                                     color = Color(0xFFBDBDBD)
                                 )
                             },
@@ -400,7 +456,7 @@ fun AddTransactionScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.date),
-                            style = LocalTypography.current.bodySmallNormal,
+                            style = LocalTypography.current.bodyLargeNormal,
                             color = Color.DarkGray
                         )
                         Text(

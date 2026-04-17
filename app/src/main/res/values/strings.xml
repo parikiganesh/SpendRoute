@@ -137,4 +137,10 @@
 
     <string name="close">Close</string>
 
+    <!-- Notification Strings -->
+    <string name="notification_title_with_name">Hey %s, Time to Track Your Spending! 💰</string>
+    <string name="notification_title_default">Time to Track Your Spending! 💰</string>
+    <string name="notification_content">Don\'t forget to log your expenses for today 😊</string>
+    <string name="notification_big_text">Don\'t forget to log your expenses for today 😊\n\nKeep your finances in check!</string>
+
 </resources>

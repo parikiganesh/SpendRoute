@@ -337,9 +337,8 @@ private fun SwipeableTransactionCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp, horizontal = 2.dp)
             .height(IntrinsicSize.Min)
-            .clip(RoundedCornerShape(cornerRadius))
     ) {
         // Background with action buttons (revealed on swipe) - Only show if showActions is true
         if (showActions) {
@@ -347,6 +346,7 @@ private fun SwipeableTransactionCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
+                    .clip(RoundedCornerShape(cornerRadius))
                     .background(Color.White),
                 horizontalArrangement = Arrangement.End
             ) {
@@ -395,7 +395,6 @@ private fun SwipeableTransactionCard(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(cornerRadius))
                 .offset(x = if (showActions) swipeOffset.value.dp else 0.dp)
                 .clickable { showDetailSheet.value = true }
                 .pointerInput(Unit) {
@@ -407,7 +406,13 @@ private fun SwipeableTransactionCard(
                         }
                     }
                 },
-            colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+            shape = RoundedCornerShape(cornerRadius),
+            colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = 4.dp,
+                pressedElevation = 8.dp,
+                hoveredElevation = 6.dp
+            )
         ) {
             Row(
                 modifier = Modifier
