@@ -85,13 +85,13 @@ fun BalanceCard(
             ) {
                 Text(
                     text = "Net Balance — ${formatMonthTitleCase(selectedMonthState.value)}",
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyMediumNormalStyle,
                     color = Color.White
                 )
                 
                 Text(
                     text = "Select Month",
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyMediumNormalStyle,
                     color = Color.White,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable {
@@ -120,14 +120,14 @@ fun BalanceCard(
                                 }
                                 .padding(vertical = 4.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) Color(0xFFB8B3E5) else Color(0xFF4A3A7A)
+                                containerColor = if (isSelected) Color.White else Color(0xFF4A3A7A)
                             ),
                             shape = RoundedCornerShape(20.dp)
                         ) {
                             Text(
                                 text = month.take(3),  // Show abbreviated month (JAN, FEB, etc.)
                                 style = LocalTypography.current.bodySmallNormal,
-                                color = if (isSelected) Color(0xFF5B4B9B) else Color(0xFFB8B3E5),
+                                color = if (isSelected) Color(0xFF5B4B9B) else Color.White,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                             )
                         }
@@ -177,8 +177,8 @@ fun BalanceCard(
                             )
                             Text(
                                 text = "Income",
-                                style = LocalTypography.current.bodySmallNormal,
-                                color = Color(0xFFB8E6C9)
+                                style = LocalTypography.current.bodyMediumNormalStyle,
+                                color = Color.White
                             )
                         }
                         Text(
@@ -213,8 +213,8 @@ fun BalanceCard(
                             )
                             Text(
                                 text = "Expense",
-                                style = LocalTypography.current.bodySmallNormal,
-                                color = Color(0xFFE8B4C8)
+                                style = LocalTypography.current.bodyMediumNormalStyle,
+                                color = Color.White
                             )
                         }
                         Text(

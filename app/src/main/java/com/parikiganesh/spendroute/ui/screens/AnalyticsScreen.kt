@@ -135,7 +135,7 @@ private fun PeriodToggleButtons(
             ) {
                 Text(
                     text = period,
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeNormal,
                     color = if (isSelected) Color.White else Color(0xFF7C6FD4),
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -206,7 +206,7 @@ private fun SummaryCard(
         ) {
             Text(
                 text = title,
-                style = LocalTypography.current.bodySmallNormal,
+                style = LocalTypography.current.bodyLargeNormal,
                 color = textColor,
                 fontSize = 12.sp
             )
@@ -241,14 +241,14 @@ private fun SummaryCard(
 
                 Text(
                     text = changeText,
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeNormal,
                     color = changeColor,
                     fontSize = 10.sp
                 )
 
                 Text(
                     text = comparisonText,
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeNormal,
                     color = textColor,
                     fontSize = 10.sp
                 )
@@ -276,7 +276,7 @@ private fun IncomeVsExpenseChart(
 
         Text(
             text = stringResource(R.string.last_6_months),
-            style = LocalTypography.current.bodySmallNormal,
+            style = LocalTypography.current.bodyLargeNormal,
             color = Color(0xFF999999),
             fontSize = 12.sp,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -285,7 +285,7 @@ private fun IncomeVsExpenseChart(
         if (monthlyData.isEmpty()) {
             Text(
                 text = stringResource(R.string.no_data_available),
-                style = LocalTypography.current.bodySmallNormal,
+                style = LocalTypography.current.bodyLargeNormal,
                 color = Color(0xFF999999),
                 modifier = Modifier.padding(vertical = 32.dp)
             )
@@ -345,8 +345,8 @@ private fun IncomeVsExpenseChart(
                 monthlyData.forEach { monthData ->
                     Text(
                         text = monthData.month,
-                        style = LocalTypography.current.bodySmallNormal,
-                        color = Color(0xFF999999),
+                        style = LocalTypography.current.bodyLargeSemibold,
+                        color = Color.Black,
                         fontSize = 10.sp,
                         modifier = Modifier
                             .weight(1f)
@@ -378,7 +378,7 @@ private fun IncomeVsExpenseChart(
                 )
                 Text(
                     text = stringResource(R.string.income_legend),
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeSemibold,
                     color = Color.Black,
                     fontSize = 11.sp
                 )
@@ -396,7 +396,7 @@ private fun IncomeVsExpenseChart(
                 )
                 Text(
                     text = stringResource(R.string.expense_legend),
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeSemibold,
                     color = Color.Black,
                     fontSize = 11.sp
                 )
@@ -426,7 +426,7 @@ private fun ExpenseByCategorySection(
         if (categoryExpenses.isEmpty()) {
             Text(
                 text = stringResource(R.string.no_expenses_yet),
-                style = LocalTypography.current.bodySmallNormal,
+                style = LocalTypography.current.bodyLargeNormal,
                 color = Color(0xFF999999),
                 modifier = Modifier.padding(vertical = 16.dp)
             )
@@ -463,7 +463,7 @@ private fun ExpenseCategoryItem(
         ) {
             Text(
                 text = name,
-                style = LocalTypography.current.bodySmallNormal,
+                style = LocalTypography.current.bodyLargeNormal,
                 color = Color.Black,
                 fontSize = 14.sp
             )
@@ -474,14 +474,14 @@ private fun ExpenseCategoryItem(
             ) {
                 Text(
                     text = "Rs. ${String.format(Locale.US, "%.0f", amount).replace(".0", "")}",
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeNormal,
                     color = Color.Black,
                     fontSize = 12.sp
                 )
 
                 Text(
                     text = "- ${String.format(Locale.US, "%.0f", percentage)}%",
-                    style = LocalTypography.current.bodySmallNormal,
+                    style = LocalTypography.current.bodyLargeNormal,
                     color = Color(0xFF999999),
                     fontSize = 12.sp
                 )

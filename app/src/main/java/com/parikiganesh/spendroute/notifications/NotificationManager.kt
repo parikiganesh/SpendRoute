@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.parikiganesh.spendroute.MainActivity
 import com.parikiganesh.spendroute.R
+import com.parikiganesh.spendroute.data.UserPreferences
 
 /**
  * Manages local notifications for the SpendRoute app.
@@ -55,6 +56,15 @@ class SpendRouteNotificationManager(private val context: Context) {
      * Show daily expense reminder notification
      */
     fun showDailyReminderNotification() {
+        val userPreferences = UserPreferences(context)
+        val userName = userPreferences.getUserName()
+        
+        val title = if (userName.isNotEmpty()) {
+            context.getString(R.string.notification_title_with_name, userName)
+        } else {
+            context.getString(R.string.notification_title_default)
+        }
+
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create intent to open MainActivity when notification is clicked
@@ -72,11 +82,11 @@ class SpendRouteNotificationManager(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Time to Track Your Spending! 💰")
-            .setContentText("Hey! Don't forget to log your expenses for today 😊")
+            .setContentTitle(title)
+            .setContentText(context.getString(R.string.notification_content))
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("Hey! Don't forget to log your expenses for today 😊\n\nKeep your finances in check!")
+                    .bigText(context.getString(R.string.notification_big_text))
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
