@@ -16,8 +16,8 @@ android {
         applicationId = "com.parikiganesh.spendroute"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,8 +55,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.vico)
     implementation(libs.androidx.compose.foundation.layout)
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
     implementation(libs.androidx.material3)
+    // Google Play Core for in-app updates (updated to app-update for Android 14 compatibility)
+    implementation("com.google.android.play:app-update:2.1.0")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
