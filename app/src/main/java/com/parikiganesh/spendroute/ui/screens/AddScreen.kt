@@ -1,6 +1,7 @@
 package com.parikiganesh.spendroute.ui.screens
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -96,6 +97,12 @@ fun AddTransactionScreen(
         } else {
             viewModel.resetForm()
         }
+    }
+    
+    // Handle back button - clear edit state when going back
+    BackHandler {
+        onClearEdit()
+        onNavigateToHome()
     }
 
     // Date picker state (UI-only local state)

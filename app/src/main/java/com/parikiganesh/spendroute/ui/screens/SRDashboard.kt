@@ -89,7 +89,11 @@ fun SRDashboard(
                             icon = { Icon(item.icon, contentDescription = stringResource(item.labelResId)) },
                             label = { Text(stringResource(item.labelResId), style = LocalTypography.current.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             selected = currentRoute.value == item.route.route,
-                            onClick = { viewModel.navigateTo(item.route.route) },
+                            onClick = { 
+                                // Clear any previous edit transaction when clicking Add button for fresh add
+                                viewModel.setTransactionToEdit(null)
+                                viewModel.navigateTo(item.route.route)
+                            },
                             enabled = true
                         )
                     }
