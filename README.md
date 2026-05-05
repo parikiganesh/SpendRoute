@@ -377,7 +377,7 @@ Contributions are welcome! Please follow these steps:
 ## 📞 Support & Contact
 
 - **Issues:** [GitHub Issues](https://github.com/parikiganesh/SpendRoute/issues)
-- **Email:** [Your Email]
+- **Email:** parikigkr@gmail.com
 - **GitHub:** [@parikiganesh](https://github.com/parikiganesh)
 
 ---
@@ -436,8 +436,16 @@ Manage notifications, export data, and clear records.
 
 ---
 
+## 📈 Author
+
 **Made with ❤️ by [Pariki Ganesh Kumar Reddy](https://github.com/parikiganesh)**
+
+Android Developer
+
+---
+
+## 📄 License
+This project is for learning and personal use.
 
 Last Updated: May 5, 2026  
 Version: 1.1.1
-
