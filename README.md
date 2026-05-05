@@ -424,7 +424,7 @@ Manage notifications, export data, and clear records.
 
 ---
 
-# 📈 Stats
+## 📈 Stats
 
 - **Lines of Code:** 5000+
 - **Kotlin Files:** 20+
