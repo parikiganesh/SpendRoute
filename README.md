@@ -424,7 +424,7 @@ Manage notifications, export data, and clear records.
 
 ---
 
-## 📈 Stats
+# 📈 Stats
 
 - **Lines of Code:** 5000+
 - **Kotlin Files:** 20+
@@ -436,7 +436,7 @@ Manage notifications, export data, and clear records.
 
 ---
 
-**Made with ❤️ by [Ganesh Pariki](https://github.com/parikiganesh)**
+**Made with ❤️ by [Pariki Ganesh Kumar Reddy](https://github.com/parikiganesh)**
 
 Last Updated: May 5, 2026  
 Version: 1.1.1
