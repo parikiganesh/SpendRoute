@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Dining
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Movie
@@ -49,6 +50,7 @@ object CategoryConstants {
 
     val expenseCategories = listOf(
         CategoryOption("Food", Icons.Default.Dining, TransactionType.EXPENSE),
+        CategoryOption("Rent", Icons.Default.Home, TransactionType.EXPENSE),
         CategoryOption("Travel", Icons.Default.DirectionsCar, TransactionType.EXPENSE),
         CategoryOption("Entertainment", Icons.Default.Movie, TransactionType.EXPENSE),
         CategoryOption("Bills", Icons.Default.ElectricBolt, TransactionType.EXPENSE),

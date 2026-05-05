@@ -39,6 +39,7 @@ fun SRDashboard(
 ) {
     val currentRoute = viewModel.currentRoute.collectAsState()
     val transactionToEdit = viewModel.transactionToEdit.collectAsState()
+    val initialTransactionType = viewModel.initialTransactionType.collectAsState()
     val context = LocalContext.current
     
     // Permission launcher for notifications
@@ -114,24 +115,28 @@ fun SRDashboard(
                     onNavigateToProfile = {
                         viewModel.navigateTo(SRNavigation.Profile.route)
                     },
-                    onNavigateToAddEdit = { transaction ->
+                    onNavigateToAddEdit = { transaction, transactionType ->
                         viewModel.setTransactionToEdit(transaction)
+                        viewModel.setInitialTransactionType(transactionType)
                         viewModel.navigateTo(SRNavigation.AddExpense.route)
                     }
                 )
                 SRNavigation.Transactions.route -> TransactionsScreen(
-                    onNavigateToAddEdit = { transaction ->
+                    onNavigateToAddEdit = { transaction, transactionType ->
                         viewModel.setTransactionToEdit(transaction)
+                        viewModel.setInitialTransactionType(transactionType)
                         viewModel.navigateTo(SRNavigation.AddExpense.route)
                     }
                 )
                 SRNavigation.AddExpense.route -> AddTransactionScreen(
                     transactionToEdit = transactionToEdit.value,
+                    initialTransactionType = initialTransactionType.value,
                     onNavigateToHome = {
                         viewModel.navigateTo(SRNavigation.Home.route)
                     },
                     onClearEdit = {
                         viewModel.setTransactionToEdit(null)
+                        viewModel.setInitialTransactionType(null)
                     }
                 )
                 SRNavigation.Analytics.route -> AnalyticsScreen()

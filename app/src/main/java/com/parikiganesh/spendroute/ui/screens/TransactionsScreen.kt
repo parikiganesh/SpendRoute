@@ -40,12 +40,13 @@ import com.parikiganesh.spendroute.viewmodel.FilterType
 import com.parikiganesh.spendroute.viewmodel.TransactionsViewModel
 import com.parikiganesh.spendroute.viewmodel.factory.TransactionsViewModelFactory
 import com.parikiganesh.spendroute.data.model.Transaction
+import com.parikiganesh.spendroute.data.model.TransactionType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
     modifier: Modifier = Modifier,
-    onNavigateToAddEdit: (Transaction?) -> Unit = {},
+    onNavigateToAddEdit: (Transaction?, TransactionType?) -> Unit = { _, _ -> },
     viewModel: TransactionsViewModel = viewModel(
         factory = TransactionsViewModelFactory(
             LocalContext.current.applicationContext as android.app.Application
@@ -151,7 +152,7 @@ fun TransactionsScreen(
                     onSeeAllClick = {},
                     showSeeAll = false,
                     onEditTransaction = { transaction ->
-                        onNavigateToAddEdit(transaction)
+                        onNavigateToAddEdit(transaction, null)
                     },
                     onDeleteTransaction = { transactionId ->
                         viewModel.deleteTransaction(transactionId)

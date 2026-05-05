@@ -15,9 +15,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.model.BalanceInfo
 import com.parikiganesh.spendroute.data.model.Transaction
+import com.parikiganesh.spendroute.data.model.TransactionType
 import com.parikiganesh.spendroute.ui.components.BalanceCard
 import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.components.RecentTransactions
+import com.parikiganesh.spendroute.ui.components.ExpenseWarningDialog
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.HomeViewModel
 import com.parikiganesh.spendroute.viewmodel.factory.HomeViewModelFactory
@@ -27,7 +29,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateToTransactions: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToAddEdit: (Transaction?) -> Unit = {},
+    onNavigateToAddEdit: (Transaction?, TransactionType?) -> Unit = { _, _ -> },
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             LocalContext.current.applicationContext as android.app.Application
@@ -37,6 +39,9 @@ fun HomeScreen(
     val balanceInfo = viewModel.balanceInfo.collectAsState()
     val recentTransactions = viewModel.recentTransactions.collectAsState()
     val userName = viewModel.userName.collectAsState()
+    val showExpenseWarning = viewModel.showExpenseWarning.collectAsState()
+    val monthlyIncome = viewModel.monthlyIncome.collectAsState()
+    val monthlyExpense = viewModel.monthlyExpense.collectAsState()
 
     // Get user info from ViewModel or preferences for initials
     val context = LocalContext.current
@@ -46,6 +51,15 @@ fun HomeScreen(
     // Refresh user name when screen is displayed (in case it was updated)
     LaunchedEffect(Unit) {
         viewModel.loadUserName()
+    }
+
+    // ⭐ Show warning dialog once when condition is met
+    if (showExpenseWarning.value) {
+        ExpenseWarningDialog(
+            monthlyIncome = monthlyIncome.value,
+            monthlyExpense = monthlyExpense.value,
+            onDismiss = { viewModel.dismissWarningDialog() }
+        )
     }
 
     Column(
@@ -74,6 +88,14 @@ fun HomeScreen(
                         balanceInfo = balanceInfo.value!!,
                         onMonthSelected = { month ->
                             viewModel.selectMonth(month)
+                        },
+                        onIncomeClick = {
+                            // Navigate to add income screen
+                            onNavigateToAddEdit(null, TransactionType.INCOME)
+                        },
+                        onExpenseClick = {
+                            // Navigate to add expense screen
+                            onNavigateToAddEdit(null, TransactionType.EXPENSE)
                         }
                     )
                 } else {
@@ -88,6 +110,14 @@ fun HomeScreen(
                         ),
                         onMonthSelected = { month ->
                             viewModel.selectMonth(month)
+                        },
+                        onIncomeClick = {
+                            // Navigate to add income screen
+                            onNavigateToAddEdit(null, TransactionType.INCOME)
+                        },
+                        onExpenseClick = {
+                            // Navigate to add expense screen
+                            onNavigateToAddEdit(null, TransactionType.EXPENSE)
                         }
                     )
                 }
@@ -101,7 +131,7 @@ fun HomeScreen(
                         onNavigateToTransactions()
                     },
                     onEditTransaction = { transaction ->
-                        onNavigateToAddEdit(transaction)
+                        onNavigateToAddEdit(transaction, null)
                     },
                     onDeleteTransaction = { transactionId ->
                         viewModel.deleteTransaction(transactionId)

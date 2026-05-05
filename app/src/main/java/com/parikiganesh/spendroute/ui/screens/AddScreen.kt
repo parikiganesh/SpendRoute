@@ -79,6 +79,7 @@ fun AddTransactionScreen(
     onTransactionAdded: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     transactionToEdit: Transaction? = null,
+    initialTransactionType: TransactionType? = null,
     onClearEdit: () -> Unit = {},
     viewModel: AddTransactionViewModel = viewModel(
         factory = AddTransactionViewModelFactory(
@@ -96,6 +97,10 @@ fun AddTransactionScreen(
             viewModel.prepareEditTransaction(transactionToEdit)
         } else {
             viewModel.resetForm()
+            // If initial transaction type is specified, update the form to use it
+            if (initialTransactionType != null) {
+                viewModel.switchTransactionType(initialTransactionType)
+            }
         }
     }
     

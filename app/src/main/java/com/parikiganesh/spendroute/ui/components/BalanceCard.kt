@@ -56,7 +56,9 @@ private val MONTHS = listOf(
 fun BalanceCard(
     balanceInfo: BalanceInfo,
     modifier: Modifier = Modifier,
-    onMonthSelected: (String) -> Unit = {}  // Callback when month is selected
+    onMonthSelected: (String) -> Unit = {},  // Callback when month is selected
+    onIncomeClick: () -> Unit = {},  // Callback when income card is clicked
+    onExpenseClick: () -> Unit = {}  // Callback when expense card is clicked
 ) {
     // Use current month if not provided
     val initialMonth = if (balanceInfo.month.isEmpty()) getCurrentMonth() else balanceInfo.month
@@ -155,7 +157,7 @@ fun BalanceCard(
             ) {
                 // Income Card
                 Card(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable { onIncomeClick() },
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF2D5C4F)
                     )
@@ -191,7 +193,7 @@ fun BalanceCard(
 
                 // Expense Card
                 Card(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable { onExpenseClick() },
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF5C3B4F)
                     )

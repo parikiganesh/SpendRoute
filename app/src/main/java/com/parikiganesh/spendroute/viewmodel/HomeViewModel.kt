@@ -34,6 +34,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName.asStateFlow()
+    
+    // ⭐ New: Warning dialog state for expense > income
+    private val _showExpenseWarning = MutableStateFlow(false)
+    val showExpenseWarning: StateFlow<Boolean> = _showExpenseWarning.asStateFlow()
+    
+    private val _monthlyIncome = MutableStateFlow(0.0)
+    val monthlyIncome: StateFlow<Double> = _monthlyIncome.asStateFlow()
+    
+    private val _monthlyExpense = MutableStateFlow(0.0)
+    val monthlyExpense: StateFlow<Double> = _monthlyExpense.asStateFlow()
+    
+    // Track previous state to detect when expense exceeds income (only show on change)
+    private val _isFirstLoad = MutableStateFlow(true)  // Track if this is first load
 
     init {
         loadUserName()
@@ -83,6 +96,25 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val expense = filteredTransactions.filter { !it.isIncome }.sumOf { it.amount }
                 val balance = income - expense
 
+                // ⭐ Update monthly values
+                _monthlyIncome.value = income
+                _monthlyExpense.value = expense
+                
+                // ⭐ Show alert if:
+                // 1. NOT first load (skip on app launch)
+                // 2. Expense > Income
+                // Alert shows every time the condition is true
+                if (!_isFirstLoad.value && expense > income) {
+                    _showExpenseWarning.value = true
+                } else {
+                    _showExpenseWarning.value = false
+                }
+                
+                // ⭐ Mark first load as complete (only on first call)
+                if (_isFirstLoad.value) {
+                    _isFirstLoad.value = false
+                }
+
                 _balanceInfo.value = BalanceInfo(
                     month = month,
                     totalBalance = balance,
@@ -100,6 +132,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 // NOTE: recentTransactions is NOT updated here - it always shows ALL transactions
             }
         }
+    }
+    
+    /**
+     * Dismiss the warning dialog
+     * Called when user clicks "I Understand" button
+     */
+    fun dismissWarningDialog() {
+        _showExpenseWarning.value = false
     }
     
     fun deleteTransaction(transactionId: String) {
