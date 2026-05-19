@@ -24,27 +24,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.AnalyticsViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.AnalyticsViewModelFactory
 import java.util.Locale
 
 @Composable
 fun AnalyticsScreen(
     modifier: Modifier = Modifier,
-    viewModel: AnalyticsViewModel = viewModel(
-        factory = AnalyticsViewModelFactory(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: AnalyticsViewModel = hiltViewModel()
 ) {
     val analyticsData = viewModel.analyticsData.collectAsState()
     val selectedPeriod = viewModel.selectedPeriod.collectAsState()

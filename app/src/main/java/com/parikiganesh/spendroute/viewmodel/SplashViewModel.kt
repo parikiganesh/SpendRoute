@@ -1,9 +1,11 @@
 package com.parikiganesh.spendroute.viewmodel
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 /**
  * SplashViewModel manages the state for the splash screen
@@ -20,7 +22,8 @@ data class SplashState(
     val isOnboardingCompleted: Boolean = false
 )
 
-class SplashViewModel : ViewModel() {
+@HiltViewModel
+class SplashViewModel @Inject constructor() : ViewModel() {
 
     private val _state = MutableStateFlow(SplashState())
     val state: StateFlow<SplashState> = _state.asStateFlow()

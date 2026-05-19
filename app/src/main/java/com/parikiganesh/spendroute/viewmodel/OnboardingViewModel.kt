@@ -1,9 +1,11 @@
 package com.parikiganesh.spendroute.viewmodel
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 /**
  * OnboardingViewModel manages the state for the onboarding flow
@@ -21,7 +23,8 @@ data class OnboardingFormState(
     val isLoading: Boolean = false
 )
 
-class OnboardingViewModel : ViewModel() {
+@HiltViewModel
+class OnboardingViewModel @Inject constructor() : ViewModel() {
 
     private val _formState = MutableStateFlow(OnboardingFormState())
     val formState: StateFlow<OnboardingFormState> = _formState.asStateFlow()

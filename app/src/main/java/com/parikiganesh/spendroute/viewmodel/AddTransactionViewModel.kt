@@ -1,17 +1,17 @@
 package com.parikiganesh.spendroute.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.data.model.TransactionType
-import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.DateTimeUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * AddTransactionViewModel manages the form state and business logic for adding/editing transactions.
@@ -28,10 +28,10 @@ data class AddTransactionFormState(
     val isFormValid: Boolean = false
 )
 
-class AddTransactionViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = SpendRouteDatabase.getDatabase(application)
-    private val repository = TransactionRepository(database.transactionDao())
+@HiltViewModel
+class AddTransactionViewModel @Inject constructor(
+    private val repository: TransactionRepository
+) : ViewModel() {
 
     // Form state
     private val _formState = MutableStateFlow(AddTransactionFormState(selectedDate = DateTimeUtils.getCurrentDate()))

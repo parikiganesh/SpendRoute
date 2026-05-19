@@ -39,19 +39,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.OnboardingViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.OnboardingViewModelFactory
 
 @Composable
 fun OnboardingScreen(
     onContinueClick: (String) -> Unit,
-    viewModel: OnboardingViewModel = viewModel(
-        factory = OnboardingViewModelFactory()
-    )
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val formState = viewModel.formState.collectAsState()
     val state = formState.value

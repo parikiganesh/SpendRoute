@@ -42,24 +42,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.utils.PermissionUtils
 import com.parikiganesh.spendroute.viewmodel.ProfileViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.ProfileViewModelFactory
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     onNavigateToOnboarding: () -> Unit = {},
-    viewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state = viewModel.state.collectAsState()

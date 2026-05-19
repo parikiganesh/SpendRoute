@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.components.RecentTransactions
@@ -38,7 +38,6 @@ import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.FilterType
 import com.parikiganesh.spendroute.viewmodel.TransactionsViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.TransactionsViewModelFactory
 import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.data.model.TransactionType
 
@@ -47,11 +46,7 @@ import com.parikiganesh.spendroute.data.model.TransactionType
 fun TransactionsScreen(
     modifier: Modifier = Modifier,
     onNavigateToAddEdit: (Transaction?, TransactionType?) -> Unit = { _, _ -> },
-    viewModel: TransactionsViewModel = viewModel(
-        factory = TransactionsViewModelFactory(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: TransactionsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val searchQuery = viewModel.searchQuery.collectAsState()

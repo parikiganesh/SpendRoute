@@ -1,24 +1,24 @@
 package com.parikiganesh.spendroute.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.model.BalanceInfo
 import com.parikiganesh.spendroute.data.model.Transaction
-import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.DateTimeUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = SpendRouteDatabase.getDatabase(application)
-    private val repository = TransactionRepository(database.transactionDao())
-    private val userPreferences = UserPreferences(application)
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repository: TransactionRepository,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
 
     private val _balanceInfo = MutableStateFlow<BalanceInfo?>(null)
     val balanceInfo: StateFlow<BalanceInfo?> = _balanceInfo.asStateFlow()

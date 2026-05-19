@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.model.BalanceInfo
 import com.parikiganesh.spendroute.data.model.Transaction
@@ -22,7 +22,6 @@ import com.parikiganesh.spendroute.ui.components.RecentTransactions
 import com.parikiganesh.spendroute.ui.components.ExpenseWarningDialog
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.HomeViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.HomeViewModelFactory
 
 @Composable
 fun HomeScreen(
@@ -30,11 +29,7 @@ fun HomeScreen(
     onNavigateToTransactions: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAddEdit: (Transaction?, TransactionType?) -> Unit = { _, _ -> },
-    viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val balanceInfo = viewModel.balanceInfo.collectAsState()
     val recentTransactions = viewModel.recentTransactions.collectAsState()

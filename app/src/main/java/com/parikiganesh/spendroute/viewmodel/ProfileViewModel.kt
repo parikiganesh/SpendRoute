@@ -1,16 +1,16 @@
 package com.parikiganesh.spendroute.viewmodel
 
-import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.model.Transaction
-import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.CsvExporter
 import com.parikiganesh.spendroute.utils.NotificationPreferences
 import com.parikiganesh.spendroute.utils.PdfExporter
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * ProfileViewModel manages all state and business logic for the ProfileScreen
@@ -69,15 +70,14 @@ data class ProfileState(
     val errorMessage: String? = null
 )
 
-class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val repository: TransactionRepository,
+    private val userPreferences: UserPreferences,
+    private val notificationPreferences: NotificationPreferences,
+    @ApplicationContext private val context: Context
+) : ViewModel() {
 
-    private val database = SpendRouteDatabase.getDatabase(application)
-    private val repository = TransactionRepository(database.transactionDao())
-    private val userPreferences = UserPreferences(application)
-    private val notificationPreferences = NotificationPreferences(application)
-    private val context: Context
-        get() = getApplication()
-    
     // State management
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()

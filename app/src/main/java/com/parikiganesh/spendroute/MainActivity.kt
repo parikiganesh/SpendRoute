@@ -20,7 +20,9 @@ import com.parikiganesh.spendroute.ui.screens.SplashScreen
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.utils.InAppUpdateManager
 import com.parikiganesh.spendroute.viewmodel.SRDashboardViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: SRDashboardViewModel by viewModels()
     private lateinit var userPreferences: UserPreferences

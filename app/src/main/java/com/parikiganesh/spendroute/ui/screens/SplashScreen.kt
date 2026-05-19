@@ -26,21 +26,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.SplashViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.SplashViewModelFactory
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     onSplashComplete: (Boolean) -> Unit,
     isOnboardingCompleted: Boolean,
-    viewModel: SplashViewModel = viewModel(
-        factory = SplashViewModelFactory()
-    )
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState()
     val s = state.value

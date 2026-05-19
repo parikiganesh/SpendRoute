@@ -1,18 +1,18 @@
 package com.parikiganesh.spendroute.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.model.CategoryExpense
 import com.parikiganesh.spendroute.data.model.Transaction
-import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.DateTimeUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import javax.inject.Inject
 
 data class AnalyticsData(
     val totalIncome: Double = 0.0,
@@ -29,10 +29,10 @@ data class MonthlyChartData(
     val expense: Double
 )
 
-class AnalyticsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = SpendRouteDatabase.getDatabase(application)
-    private val repository = TransactionRepository(database.transactionDao())
+@HiltViewModel
+class AnalyticsViewModel @Inject constructor(
+    private val repository: TransactionRepository
+) : ViewModel() {
 
     private val _analyticsData = MutableStateFlow<AnalyticsData>(AnalyticsData())
     val analyticsData: StateFlow<AnalyticsData> = _analyticsData.asStateFlow()

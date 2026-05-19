@@ -5,8 +5,9 @@ import com.parikiganesh.spendroute.data.local.entity.TransactionEntity
 import com.parikiganesh.spendroute.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class TransactionRepository(private val transactionDao: TransactionDao) {
+class TransactionRepository @Inject constructor(private val transactionDao: TransactionDao) {
 
     // Get all transactions
     fun getAllTransactions(): Flow<List<Transaction>> {

@@ -1,24 +1,24 @@
 package com.parikiganesh.spendroute.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.model.Transaction
-import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.repository.TransactionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 enum class FilterType {
     ALL, INCOME, EXPENSE
 }
 
-class TransactionsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = SpendRouteDatabase.getDatabase(application)
-    private val repository = TransactionRepository(database.transactionDao())
+@HiltViewModel
+class TransactionsViewModel @Inject constructor(
+    private val repository: TransactionRepository
+) : ViewModel() {
 
     private val _filterType = MutableStateFlow(FilterType.ALL)
     val filterType: StateFlow<FilterType> = _filterType.asStateFlow()

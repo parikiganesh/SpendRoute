@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -59,7 +60,10 @@ dependencies {
     implementation(libs.androidx.material3)
     // Google Play Core for in-app updates (updated to app-update for Android 14 compatibility)
     implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.dagger:hilt-android:2.59.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     ksp(libs.androidx.room.compiler)
+    ksp("com.google.dagger:hilt-compiler:2.59.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

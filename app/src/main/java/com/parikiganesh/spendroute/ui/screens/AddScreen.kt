@@ -57,7 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.data.model.TransactionType
@@ -66,7 +66,6 @@ import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.AddTransactionViewModel
-import com.parikiganesh.spendroute.viewmodel.factory.AddTransactionViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -81,11 +80,7 @@ fun AddTransactionScreen(
     transactionToEdit: Transaction? = null,
     initialTransactionType: TransactionType? = null,
     onClearEdit: () -> Unit = {},
-    viewModel: AddTransactionViewModel = viewModel(
-        factory = AddTransactionViewModelFactory(
-            LocalContext.current.applicationContext as android.app.Application
-        )
-    )
+    viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
     // Collect form state from ViewModel
     val formState = viewModel.formState.collectAsState()
@@ -227,7 +222,7 @@ fun AddTransactionScreen(
                                 text = stringResource(R.string.currency),
                                 style = LocalTypography.current.bodyMediumPrimary,
                                 color = Color.Black,
-                                fontSize = 36.sp
+                                fontSize = 26.sp
                             )
                             TextField(
                                 value = state.amount,
@@ -240,14 +235,14 @@ fun AddTransactionScreen(
                                     Text(
                                         text = stringResource(R.string.enter_amount),
                                         style = LocalTypography.current.bodyExtraLargeText.copy(
-                                            fontSize = 36.sp,
+                                            fontSize = 26.sp,
                                             fontWeight = FontWeight.Bold
                                         ),
                                         color = Color(0xFFBDBDBD)
                                     )
                                 },
                                 textStyle = LocalTypography.current.bodyExtraLargeText.copy(
-                                    fontSize = 36.sp,
+                                    fontSize = 26.sp,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 colors = TextFieldDefaults.colors(
