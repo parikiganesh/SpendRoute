@@ -1,5 +1,8 @@
 package com.parikiganesh.spendroute.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -22,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -34,9 +36,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +58,8 @@ import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.ui.theme.LocalTypography
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun RecentTransactions(
@@ -67,23 +73,17 @@ fun RecentTransactions(
 ) {
     val context = LocalContext.current
     val userPreferences = remember { UserPreferences(context) }
-    val showGestureHint = remember { mutableStateOf(false) }
+    val hintTargetIndex = remember { mutableIntStateOf(-1) }
 
     // Check if user has seen gesture hint on first composition
+    // Also reset the hint if the list becomes empty, so it shows again when the next "first" txn is added
     LaunchedEffect(transactions) {
-        if (transactions.isNotEmpty() && !userPreferences.hasSeenGestureHint()) {
-            showGestureHint.value = true
+        if (transactions.isEmpty()) {
+            userPreferences.setGestureHintSeen(false)
+        } else if (!userPreferences.hasSeenGestureHint()) {
+            // Animate the first transaction card as a hint
+            hintTargetIndex.intValue = 0
         }
-    }
-
-    // Show gesture hint dialog
-    if (showGestureHint.value) {
-        GestureHintDialog(
-            onDismiss = {
-                showGestureHint.value = false
-                userPreferences.setGestureHintSeen()
-            }
-        )
     }
 
     Column(
@@ -92,7 +92,6 @@ fun RecentTransactions(
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // ...existing code...
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,12 +113,17 @@ fun RecentTransactions(
         }
 
         // Transactions List
-        transactions.forEach { transaction ->
+        transactions.forEachIndexed { index, transaction ->
             SwipeableTransactionCard(
                 transaction = transaction,
                 onEdit = { onEditTransaction(transaction) },
                 onDelete = { onDeleteTransaction(transaction.id) },
-                showActions = showActions
+                showActions = showActions,
+                shouldAnimateHint = index == hintTargetIndex.intValue,
+                onHintAnimationComplete = {
+                    userPreferences.setGestureHintSeen()
+                    hintTargetIndex.intValue = -1
+                }
             )
         }
     }
@@ -132,14 +136,34 @@ private fun SwipeableTransactionCard(
     modifier: Modifier = Modifier,
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
-    showActions: Boolean = true
+    showActions: Boolean = true,
+    shouldAnimateHint: Boolean = false,
+    onHintAnimationComplete: () -> Unit = {}
 ) {
-    val swipeOffset = remember { mutableStateOf(0f) }
+    val swipeOffset = remember { Animatable(0f) }
     val showDeleteDialog = remember { mutableStateOf(false) }
     val showDetailSheet = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val cornerRadius = 15.dp
-    
+    val scope = rememberCoroutineScope()
+
+    // Hint animation for first-time users
+    LaunchedEffect(shouldAnimateHint) {
+        if (shouldAnimateHint) {
+            delay(1200) // Wait for screen to settle
+            swipeOffset.animateTo(
+                targetValue = -120f,
+                animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+            )
+            delay(1000)
+            swipeOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+            )
+            onHintAnimationComplete()
+        }
+    }
+
     // Delete Confirmation Dialog
     if (showDeleteDialog.value) {
         AlertDialog(
@@ -172,7 +196,7 @@ private fun SwipeableTransactionCard(
                     onClick = {
                         showDeleteDialog.value = false
                         onDelete()
-                        swipeOffset.value = 0f
+                        scope.launch { swipeOffset.snapTo(0f) }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE53935),
@@ -358,7 +382,7 @@ private fun SwipeableTransactionCard(
                         .background(Color(0xFF4DB8A8))
                         .clickable { 
                             onEdit()
-                            swipeOffset.value = 0f // Reset after action
+                            scope.launch { swipeOffset.snapTo(0f) } // Reset after action
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -401,7 +425,9 @@ private fun SwipeableTransactionCard(
                     if (showActions) {
                         detectHorizontalDragGestures { change, dragAmount ->
                             // Only allow swiping left (negative values)
-                            swipeOffset.value = (swipeOffset.value + dragAmount).coerceIn(-120f, 0f)
+                            scope.launch {
+                                swipeOffset.snapTo((swipeOffset.value + dragAmount).coerceIn(-120f, 0f))
+                            }
                             change.consume()
                         }
                     }
@@ -474,128 +500,6 @@ private fun SwipeableTransactionCard(
             }
         }
     }
-}
-
-/**
- * Gesture Hint Dialog - Shows helpful hint about swipe and tap gestures
- * Only displayed to first-time users
- */
-@Composable
-private fun GestureHintDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = "Tip",
-                    tint = Color(0xFF5B4B9B),
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = stringResource(R.string.gesture_hint_title),
-                    style = LocalTypography.current.bodyLargeSemibold
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.gesture_hint_description),
-                    style = LocalTypography.current.bodyMediumRegular,
-                    color = Color(0xFF1C1B1F)
-                )
-
-                // Swipe gesture hint
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "👈",
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.width(30.dp)
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = stringResource(R.string.gesture_swipe_label),
-                            style = LocalTypography.current.bodyMediumPrimary,
-                            color = Color(0xFF1C1B1F)
-                        )
-                        Text(
-                            text = stringResource(R.string.gesture_swipe_description),
-                            style = LocalTypography.current.bodySmallNormal,
-                            color = Color(0xFF1C1B1F),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-
-                // Tap gesture hint
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "👆",
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.width(30.dp)
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = stringResource(R.string.gesture_tap_label),
-                            style = LocalTypography.current.bodyMediumPrimary,
-                            color = Color(0xFF1C1B1F)
-                        )
-                        Text(
-                            text = stringResource(R.string.gesture_tap_description),
-                            style = LocalTypography.current.bodySmallNormal,
-                            color = Color(0xFF1C1B1F),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color(0xFF5B4B9B)
-                )
-            ) {
-                Text(
-                    stringResource(R.string.gesture_hint_button),
-                    style = LocalTypography.current.bodyMediumPrimary
-                )
-            }
-        },
-        confirmButton = {
-            // Empty confirm button - only show dismiss
-        },
-        containerColor = Color.White,
-        textContentColor = Color.Black
-    )
 }
 
 @Preview(showBackground = true)

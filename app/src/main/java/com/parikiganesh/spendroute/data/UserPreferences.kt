@@ -87,10 +87,10 @@ class UserPreferences(context: Context) {
     }
 
     /**
-     * Mark gesture hint as seen
+     * Mark gesture hint as seen or reset it
      */
-    fun setGestureHintSeen() {
-        sharedPreferences.edit().putBoolean(KEY_HAS_SEEN_GESTURE_HINT, true).apply()
+    fun setGestureHintSeen(seen: Boolean = true) {
+        sharedPreferences.edit().putBoolean(KEY_HAS_SEEN_GESTURE_HINT, seen).apply()
     }
 }
 
