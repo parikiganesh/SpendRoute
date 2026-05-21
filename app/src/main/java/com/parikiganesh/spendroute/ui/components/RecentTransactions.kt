@@ -75,13 +75,15 @@ fun RecentTransactions(
     val userPreferences = remember { UserPreferences(context) }
     val hintTargetIndex = remember { mutableIntStateOf(-1) }
 
-    // Check if user has seen gesture hint on first composition
-    // Also reset the hint if the list becomes empty, so it shows again when the next "first" txn is added
+    // Auto-hint only once: when the very first transaction appears.
+    // Marking as seen before animation prevents re-trigger on app reopen.
     LaunchedEffect(transactions) {
-        if (transactions.isEmpty()) {
-            userPreferences.setGestureHintSeen(false)
-        } else if (!userPreferences.hasSeenGestureHint()) {
-            // Animate the first transaction card as a hint
+        if (
+            transactions.size == 1 &&
+            !userPreferences.hasSeenGestureHint() &&
+            showActions
+        ) {
+            userPreferences.setGestureHintSeen(true)
             hintTargetIndex.intValue = 0
         }
     }
@@ -121,7 +123,6 @@ fun RecentTransactions(
                 showActions = showActions,
                 shouldAnimateHint = index == hintTargetIndex.intValue,
                 onHintAnimationComplete = {
-                    userPreferences.setGestureHintSeen()
                     hintTargetIndex.intValue = -1
                 }
             )
