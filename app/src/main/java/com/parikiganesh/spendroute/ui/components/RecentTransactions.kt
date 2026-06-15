@@ -74,11 +74,13 @@ fun RecentTransactions(
     val context = LocalContext.current
     val userPreferences = remember { UserPreferences(context) }
     val hintTargetIndex = remember { mutableIntStateOf(-1) }
+    val previousTransactionCount = remember { mutableIntStateOf(transactions.size) }
 
-    // Auto-hint only once: when the very first transaction appears.
-    // Marking as seen before animation prevents re-trigger on app reopen.
+    // Auto-hint only once when transaction list transitions from 0 -> 1.
+    // This avoids re-triggering on every app reopen when one transaction already exists.
     LaunchedEffect(transactions) {
         if (
+            previousTransactionCount.intValue == 0 &&
             transactions.size == 1 &&
             !userPreferences.hasSeenGestureHint() &&
             showActions
@@ -86,6 +88,8 @@ fun RecentTransactions(
             userPreferences.setGestureHintSeen(true)
             hintTargetIndex.intValue = 0
         }
+
+        previousTransactionCount.intValue = transactions.size
     }
 
     Column(

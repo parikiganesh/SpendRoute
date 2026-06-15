@@ -19,7 +19,6 @@ import com.parikiganesh.spendroute.data.model.TransactionType
 import com.parikiganesh.spendroute.ui.components.BalanceCard
 import com.parikiganesh.spendroute.ui.components.GreetingHeader
 import com.parikiganesh.spendroute.ui.components.RecentTransactions
-import com.parikiganesh.spendroute.ui.components.ExpenseWarningDialog
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
 import com.parikiganesh.spendroute.viewmodel.HomeViewModel
 
@@ -34,9 +33,6 @@ fun HomeScreen(
     val balanceInfo = viewModel.balanceInfo.collectAsState()
     val recentTransactions = viewModel.recentTransactions.collectAsState()
     val userName = viewModel.userName.collectAsState()
-    val showExpenseWarning = viewModel.showExpenseWarning.collectAsState()
-    val monthlyIncome = viewModel.monthlyIncome.collectAsState()
-    val monthlyExpense = viewModel.monthlyExpense.collectAsState()
 
     // Get user info from ViewModel or preferences for initials
     val context = LocalContext.current
@@ -48,14 +44,6 @@ fun HomeScreen(
         viewModel.loadUserName()
     }
 
-    // ⭐ Show warning dialog once when condition is met
-    if (showExpenseWarning.value) {
-        ExpenseWarningDialog(
-            monthlyIncome = monthlyIncome.value,
-            monthlyExpense = monthlyExpense.value,
-            onDismiss = { viewModel.dismissWarningDialog() }
-        )
-    }
 
     Column(
         modifier = modifier

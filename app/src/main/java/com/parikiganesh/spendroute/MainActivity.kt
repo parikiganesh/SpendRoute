@@ -2,6 +2,7 @@ package com.parikiganesh.spendroute
 
 import android.os.Bundle
 import android.widget.Toast
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,8 +14,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.InstallStatus
+import com.google.firebase.auth.FirebaseAuth
 import com.parikiganesh.spendroute.data.UserPreferences
-import com.parikiganesh.spendroute.ui.screens.OnboardingScreen
+import com.parikiganesh.spendroute.ui.screens.LoginScreen
 import com.parikiganesh.spendroute.ui.screens.SRDashboard
 import com.parikiganesh.spendroute.ui.screens.SplashScreen
 import com.parikiganesh.spendroute.ui.theme.SpendRouteTheme
@@ -165,27 +167,33 @@ fun SpendRouteApp(
     userPreferences: UserPreferences,
     onBackPressed: () -> Unit = {}
 ) {
-    // Screen state: "splash", "onboarding", "dashboard"
+    // Screen state: "splash", "login", "dashboard"
     val currentScreen = remember { mutableStateOf("splash") }
+    val isLoggedIn = remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
 
     when (currentScreen.value) {
         "splash" -> {
-            // Check if onboarding is completed
-            val isOnboardingCompleted = userPreferences.isOnboardingCompleted() && userPreferences.getUserName().isNotEmpty()
-            
+            // Check if user is logged in with a name saved
+            val savedName = userPreferences.getUserName().trim()
+            val isReady = isLoggedIn.value && savedName.isNotEmpty()
+
             SplashScreen(
-                isOnboardingCompleted = isOnboardingCompleted,
+                isOnboardingCompleted = isReady,
                 onSplashComplete = { completed ->
-                    currentScreen.value = if (completed) "dashboard" else "onboarding"
+                    currentScreen.value = when {
+                        !isLoggedIn.value -> "login"
+                        else -> "dashboard"
+                    }
                 }
             )
         }
-        "onboarding" -> {
-            OnboardingScreen(
-                onContinueClick = { name ->
-                    userPreferences.saveUserName(name)
-                    userPreferences.setOnboardingCompleted(true)
-                    viewModel.resetToHome()
+        "login" -> {
+            LoginScreen(
+                onLoginSuccess = {
+                    isLoggedIn.value = true
+                    currentScreen.value = "dashboard"
+                },
+                onSkipForNow = {
                     currentScreen.value = "dashboard"
                 }
             )
@@ -194,10 +202,38 @@ fun SpendRouteApp(
             SRDashboard(
                 viewModel = viewModel,
                 onBackPressed = onBackPressed,
-                onNavigateToOnboarding = {
-                    userPreferences.clearAllUserData()
-                    userPreferences.setOnboardingCompleted(false)
-                    currentScreen.value = "onboarding"
+                onLogout = {
+                    FirebaseAuth.getInstance().signOut()
+                    isLoggedIn.value = false
+                    viewModel.resetToHome()
+                    viewModel.setTransactionToEdit(null)
+                    viewModel.setInitialTransactionType(null)
+                    currentScreen.value = "login"
+                },
+                onDeleteAccount = {
+                    val auth = FirebaseAuth.getInstance()
+                    val user = auth.currentUser
+                    if (user != null) {
+                        user.delete()
+                            .addOnCompleteListener { deleteTask ->
+                                if (!deleteTask.isSuccessful) {
+                                    Log.w("MainActivity", "Account deletion failed; proceeding with logout", deleteTask.exception)
+                                }
+                                auth.signOut()
+                                isLoggedIn.value = false
+                                viewModel.resetToHome()
+                                viewModel.setTransactionToEdit(null)
+                                viewModel.setInitialTransactionType(null)
+                                currentScreen.value = "login"
+                            }
+                    } else {
+                        auth.signOut()
+                        isLoggedIn.value = false
+                        viewModel.resetToHome()
+                        viewModel.setTransactionToEdit(null)
+                        viewModel.setInitialTransactionType(null)
+                        currentScreen.value = "login"
+                    }
                 }
             )
         }

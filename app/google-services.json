@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "612962722231",
+    "project_id": "spendroute",
+    "storage_bucket": "spendroute.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:612962722231:android:430ad8fd5950e2ba218832",
+        "android_client_info": {
+          "package_name": "com.parikiganesh.spendroute"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "612962722231-fuq9l6ecctktjl9h0463uu7v2q9nmmeg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeo5gogZKA92J-bj3tBUSxwFjvBTsBgdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "612962722231-fuq9l6ecctktjl9h0463uu7v2q9nmmeg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

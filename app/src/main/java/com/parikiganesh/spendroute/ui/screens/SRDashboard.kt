@@ -35,7 +35,8 @@ import java.util.jar.Manifest
 fun SRDashboard(
     viewModel: SRDashboardViewModel,
     onBackPressed: () -> Unit = {},
-    onNavigateToOnboarding: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {}
 ) {
     val currentRoute = viewModel.currentRoute.collectAsState()
     val transactionToEdit = viewModel.transactionToEdit.collectAsState()
@@ -141,7 +142,8 @@ fun SRDashboard(
                 )
                 SRNavigation.Analytics.route -> AnalyticsScreen()
                 SRNavigation.Profile.route -> ProfileScreen(
-                    onNavigateToOnboarding = onNavigateToOnboarding
+                    onLogout = onLogout,
+                    onDeleteAccount = onDeleteAccount
                 )
                 else -> HomeScreen()
             }

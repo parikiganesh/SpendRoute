@@ -60,6 +60,8 @@
     <string name="about">About</string>
     <string name="app_version">App version</string>
     <string name="privacy_policy">Privacy &amp; Policy</string>
+    <string name="logout">Logout</string>
+    <string name="default_web_client_id">612962722231-fuq9l6ecctktjl9h0463uu7v2q9nmmeg.apps.googleusercontent.com</string>
     <string name="privacy_icon_desc">Privacy</string>
     <string name="export_title">Export Transactions</string>
     <string name="export_message">Choose format to export your transactions</string>
@@ -116,11 +118,6 @@
     <string name="app_tagline">Track your expenses smartly</string>
     <string name="app_features">Offline · Secure · Private</string>
 
-    <!-- Onboarding Screen -->
-    <string name="welcome_to_spendroute">Welcome to SpendRoute!</string>
-    <string name="track_smarter_spend_better">Track smarter, spend better</string>
-    <string name="what_should_we_call_you">What should we call you?</string>
-    <string name="enter_your_name">Enter your name</string>
     <string name="delete_transaction_title">Delete Transaction?</string>
     <string name="transaction_details">Transaction Details</string>
     <string name="time">Time</string>

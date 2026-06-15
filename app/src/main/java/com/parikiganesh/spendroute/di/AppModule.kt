@@ -2,9 +2,12 @@ package com.parikiganesh.spendroute.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.local.SpendRouteDatabase
 import com.parikiganesh.spendroute.data.local.dao.TransactionDao
+import com.parikiganesh.spendroute.repository.CloudBackupService
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.NotificationPreferences
 import dagger.Module
@@ -37,8 +40,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTransactionRepository(transactionDao: TransactionDao): TransactionRepository {
-        return TransactionRepository(transactionDao)
+    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideTransactionRepository(
+        transactionDao: TransactionDao,
+        cloudBackupService: CloudBackupService
+    ): TransactionRepository {
+        return TransactionRepository(transactionDao, cloudBackupService)
     }
 
     @Provides

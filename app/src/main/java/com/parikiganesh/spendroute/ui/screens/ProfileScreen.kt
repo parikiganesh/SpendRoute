@@ -53,7 +53,8 @@ import com.parikiganesh.spendroute.viewmodel.ProfileViewModel
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    onNavigateToOnboarding: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -348,6 +349,34 @@ fun ProfileScreen(
                                         tint = Color.Black
                                     )
                                 }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(Color(0xFFF0F0F0))
+                                )
+
+                                // Logout
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onLogout() }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.logout),
+                                        style = LocalTypography.current.bodyMediumPrimary,
+                                        color = Color(0xFFE53935)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = stringResource(R.string.logout),
+                                        tint = Color(0xFFE53935)
+                                    )
+                                }
                             }
                         }
                     }
@@ -557,10 +586,10 @@ fun ProfileScreen(
         )
     }
 
-    // Navigate to onboarding when delete countdown completes without undo
+    // Permanently delete cloud account when clear-data countdown completes without undo
     LaunchedEffect(s.countdownCompleted) {
         if (s.countdownCompleted) {
-            onNavigateToOnboarding()
+            onDeleteAccount()
             // Reset the flag to prevent repeated triggers
             viewModel.resetCountdownCompleted()
         }

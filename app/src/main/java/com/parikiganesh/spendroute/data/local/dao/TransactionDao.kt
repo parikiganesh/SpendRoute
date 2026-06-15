@@ -3,6 +3,7 @@ package com.parikiganesh.spendroute.data.local.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.parikiganesh.spendroute.data.local.entity.TransactionEntity
@@ -13,6 +14,9 @@ interface TransactionDao {
     
     @Insert
     suspend fun insertTransaction(transaction: TransactionEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTransactions(transactions: List<TransactionEntity>)
 
     @Update
     suspend fun updateTransaction(transaction: TransactionEntity)
@@ -25,6 +29,9 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
+    suspend fun getAllTransactionsOnce(): List<TransactionEntity>
 
     @Query("SELECT * FROM transactions WHERE isIncome = 1 ORDER BY timestamp DESC")
     fun getIncomeTransactions(): Flow<List<TransactionEntity>>

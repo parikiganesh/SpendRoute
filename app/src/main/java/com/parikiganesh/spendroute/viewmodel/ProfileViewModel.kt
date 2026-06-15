@@ -48,7 +48,6 @@ data class ProfileState(
     
     // Undo state
     val previousNotificationState: Boolean = false,
-    val previousOnboardingState: Boolean = false,
     val previousUserName: String = "",
     val previousAccountCreatedDate: String = "",
     val previousTransactions: List<Transaction> = emptyList(),
@@ -308,7 +307,6 @@ class ProfileViewModel @Inject constructor(
         // Save previous state for undo (including transactions backup)
         _state.value = state.copy(
             previousNotificationState = state.notificationsEnabled,
-            previousOnboardingState = userPreferences.isOnboardingCompleted(),
             previousUserName = userPreferences.getUserName(),
             previousAccountCreatedDate = userPreferences.getAccountCreatedDate(),
             previousTransactions = state.allTransactions,  // ✅ Backup transactions before deleting
@@ -376,8 +374,7 @@ class ProfileViewModel @Inject constructor(
             
             // Restore user preferences
             userPreferences.saveUserName(state.previousUserName)
-            userPreferences.setOnboardingCompleted(state.previousOnboardingState)
-            
+
             // Restore notification state
             notificationPreferences.setNotificationsEnabled(state.previousNotificationState)
             
@@ -388,7 +385,6 @@ class ProfileViewModel @Inject constructor(
                 countdownCompleted = false,
                 notificationsEnabled = state.previousNotificationState,
                 previousNotificationState = false,
-                previousOnboardingState = false,
                 previousUserName = "",
                 previousAccountCreatedDate = "",
                 previousTransactions = emptyList()

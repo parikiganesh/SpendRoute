@@ -11,16 +11,16 @@ class UserPreferences(context: Context) {
     companion object {
         private const val PREFS_NAME = "spendroute_prefs"
         private const val KEY_USER_NAME = "user_name"
-        private const val KEY_IS_ONBOARDING_COMPLETED = "is_onboarding_completed"
         private const val KEY_ACCOUNT_CREATED_DATE = "account_created_date"
         private const val KEY_HAS_SEEN_GESTURE_HINT = "has_seen_gesture_hint"
+        private const val KEY_INITIAL_CLOUD_MIGRATION_PREFIX = "initial_cloud_migration_"
     }
     
     // Save username
     fun saveUserName(name: String) {
         sharedPreferences.edit().putString(KEY_USER_NAME, name).apply()
         // Also save the account creation date when user name is first set
-        if (!isOnboardingCompleted()) {
+        if (getUserName().isEmpty()) {
             saveAccountCreatedDate()
         }
     }
@@ -55,16 +55,6 @@ class UserPreferences(context: Context) {
         }
     }
     
-    // Mark onboarding as completed
-    fun setOnboardingCompleted(completed: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_IS_ONBOARDING_COMPLETED, completed).apply()
-    }
-    
-    // Check if onboarding is completed
-    fun isOnboardingCompleted(): Boolean {
-        return sharedPreferences.getBoolean(KEY_IS_ONBOARDING_COMPLETED, false)
-    }
-    
     /**
      * Clear all user data preferences
      * Called when user chooses to clear all data in Profile screen
@@ -72,7 +62,6 @@ class UserPreferences(context: Context) {
     fun clearAllUserData() {
         sharedPreferences.edit().apply {
             putString(KEY_USER_NAME, "")
-            putBoolean(KEY_IS_ONBOARDING_COMPLETED, false)
             putString(KEY_ACCOUNT_CREATED_DATE, "April 2026")
             putBoolean(KEY_HAS_SEEN_GESTURE_HINT, false)  // Reset gesture hint so it shows again
             apply()
@@ -91,6 +80,14 @@ class UserPreferences(context: Context) {
      */
     fun setGestureHintSeen(seen: Boolean = true) {
         sharedPreferences.edit().putBoolean(KEY_HAS_SEEN_GESTURE_HINT, seen).apply()
+    }
+
+    fun isInitialCloudMigrationDone(userId: String): Boolean {
+        return sharedPreferences.getBoolean("$KEY_INITIAL_CLOUD_MIGRATION_PREFIX$userId", false)
+    }
+
+    fun setInitialCloudMigrationDone(userId: String, done: Boolean) {
+        sharedPreferences.edit().putBoolean("$KEY_INITIAL_CLOUD_MIGRATION_PREFIX$userId", done).apply()
     }
 }
 
