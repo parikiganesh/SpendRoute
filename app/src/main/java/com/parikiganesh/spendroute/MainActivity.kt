@@ -167,9 +167,16 @@ fun SpendRouteApp(
     userPreferences: UserPreferences,
     onBackPressed: () -> Unit = {}
 ) {
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val isPasswordUser = currentUser?.providerData?.any { it.providerId == "password" } == true
+    if (isPasswordUser && currentUser?.isEmailVerified != true) {
+        auth.signOut()
+    }
+
     // Screen state: "splash", "login", "dashboard"
     val currentScreen = remember { mutableStateOf("splash") }
-    val isLoggedIn = remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
+    val isLoggedIn = remember { mutableStateOf(auth.currentUser != null) }
 
     when (currentScreen.value) {
         "splash" -> {

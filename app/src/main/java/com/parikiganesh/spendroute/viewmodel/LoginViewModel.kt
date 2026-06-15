@@ -3,6 +3,7 @@ package com.parikiganesh.spendroute.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.repository.BackupSyncManager
@@ -30,6 +31,10 @@ class LoginViewModel @Inject constructor(
     private val backupSyncManager: BackupSyncManager,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
+
+    companion object {
+        private const val PASSWORD_PROVIDER_ID = "password"
+    }
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -92,10 +97,31 @@ class LoginViewModel @Inject constructor(
             try {
                 if (state.isRegisterMode) {
                     firebaseAuth.createUserWithEmailAndPassword(state.email.trim(), state.password).await()
+                    firebaseAuth.currentUser?.sendEmailVerification()?.await()
                     // Save name to preferences after successful signup
                     userPreferences.saveUserName(state.name.trim())
+                    firebaseAuth.signOut()
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isRegisterMode = false,
+                        password = "",
+                        hasAcceptedTerms = false,
+                        errorMessage = "Verification email sent. Verify your email, then log in. Check your spam folder if you don't see it."
+                    )
+                    return@launch
                 } else {
                     firebaseAuth.signInWithEmailAndPassword(state.email.trim(), state.password).await()
+                    val user = firebaseAuth.currentUser
+                    user?.reload()?.await()
+                    if (user != null && requiresEmailVerification(user) && !user.isEmailVerified) {
+                        user.sendEmailVerification().await()
+                        firebaseAuth.signOut()
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            errorMessage = "Please verify your email before logging in. We sent a new verification email. Check your spam folder if you don't see it."
+                        )
+                        return@launch
+                    }
                 }
 
                 backupSyncManager.runPostLoginSync()
@@ -108,6 +134,10 @@ class LoginViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun requiresEmailVerification(user: FirebaseUser?): Boolean {
+        return user?.providerData?.any { it.providerId == PASSWORD_PROVIDER_ID } == true
     }
 
     fun signInWithGoogleIdToken(idToken: String, onSuccess: () -> Unit) {
