@@ -14,13 +14,15 @@ class UserPreferences(context: Context) {
         private const val KEY_ACCOUNT_CREATED_DATE = "account_created_date"
         private const val KEY_HAS_SEEN_GESTURE_HINT = "has_seen_gesture_hint"
         private const val KEY_INITIAL_CLOUD_MIGRATION_PREFIX = "initial_cloud_migration_"
+        private const val KEY_LAST_AUTHENTICATED_UID = "last_authenticated_uid"
     }
     
     // Save username
     fun saveUserName(name: String) {
+        val previousName = getUserName()
         sharedPreferences.edit().putString(KEY_USER_NAME, name).apply()
         // Also save the account creation date when user name is first set
-        if (getUserName().isEmpty()) {
+        if (previousName.isEmpty() && name.isNotBlank()) {
             saveAccountCreatedDate()
         }
     }
@@ -36,7 +38,11 @@ class UserPreferences(context: Context) {
     fun getAccountCreatedDate(): String {
         return sharedPreferences.getString(KEY_ACCOUNT_CREATED_DATE, "April 2026") ?: "April 2026"
     }
-    
+
+    fun setAccountCreatedDate(date: String) {
+        sharedPreferences.edit().putString(KEY_ACCOUNT_CREATED_DATE, date).apply()
+    }
+
     // Get user name
     fun getUserName(): String {
         return sharedPreferences.getString(KEY_USER_NAME, "") ?: ""
@@ -64,6 +70,7 @@ class UserPreferences(context: Context) {
             putString(KEY_USER_NAME, "")
             putString(KEY_ACCOUNT_CREATED_DATE, "April 2026")
             putBoolean(KEY_HAS_SEEN_GESTURE_HINT, false)  // Reset gesture hint so it shows again
+            remove(KEY_LAST_AUTHENTICATED_UID)
             apply()
         }
     }
@@ -88,6 +95,21 @@ class UserPreferences(context: Context) {
 
     fun setInitialCloudMigrationDone(userId: String, done: Boolean) {
         sharedPreferences.edit().putBoolean("$KEY_INITIAL_CLOUD_MIGRATION_PREFIX$userId", done).apply()
+    }
+
+    fun getLastAuthenticatedUserId(): String? {
+        return sharedPreferences.getString(KEY_LAST_AUTHENTICATED_UID, null)
+    }
+
+    fun setLastAuthenticatedUserId(userId: String) {
+        sharedPreferences.edit().putString(KEY_LAST_AUTHENTICATED_UID, userId).apply()
+    }
+
+    fun clearLocalUserProfileCache() {
+        sharedPreferences.edit()
+            .putString(KEY_USER_NAME, "")
+            .putString(KEY_ACCOUNT_CREATED_DATE, "April 2026")
+            .apply()
     }
 }
 

@@ -47,6 +47,56 @@ class CloudBackupService @Inject constructor(
         }
     }
 
+    suspend fun backupUserName(name: String) {
+        val uid = currentUserId() ?: return
+        val trimmedName = name.trim()
+        if (trimmedName.isEmpty()) return
+
+        firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .set(
+                mapOf(
+                    USER_NAME_FIELD to trimmedName,
+                    USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
+                )
+            )
+            .await()
+    }
+
+    suspend fun restoreUserName(): String {
+        val uid = currentUserId() ?: return ""
+        val snapshot = firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .get()
+            .await()
+        return snapshot.getString(USER_NAME_FIELD)?.trim().orEmpty()
+    }
+
+    suspend fun backupAccountCreatedDate(accountCreatedDate: String) {
+        val uid = currentUserId() ?: return
+        val trimmedDate = accountCreatedDate.trim()
+        if (trimmedDate.isEmpty()) return
+
+        firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .set(
+                mapOf(
+                    ACCOUNT_CREATED_DATE_FIELD to trimmedDate,
+                    USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
+                )
+            )
+            .await()
+    }
+
+    suspend fun restoreAccountCreatedDate(): String {
+        val uid = currentUserId() ?: return ""
+        val snapshot = firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .get()
+            .await()
+        return snapshot.getString(ACCOUNT_CREATED_DATE_FIELD)?.trim().orEmpty()
+    }
+
     private fun transactionToMap(transaction: Transaction): Map<String, Any?> {
         return mapOf(
             "title" to transaction.title,
@@ -84,6 +134,9 @@ class CloudBackupService @Inject constructor(
     private companion object {
         const val USERS_COLLECTION = "users"
         const val TRANSACTIONS_COLLECTION = "transactions"
+        const val USER_NAME_FIELD = "name"
+        const val ACCOUNT_CREATED_DATE_FIELD = "accountCreatedDate"
+        const val USER_PROFILE_UPDATED_AT_FIELD = "profileUpdatedAt"
     }
 }
 

@@ -99,7 +99,14 @@ class LoginViewModel @Inject constructor(
                     firebaseAuth.createUserWithEmailAndPassword(state.email.trim(), state.password).await()
                     firebaseAuth.currentUser?.sendEmailVerification()?.await()
                     // Save name to preferences after successful signup
-                    userPreferences.saveUserName(state.name.trim())
+                    val name = state.name.trim()
+                    userPreferences.saveUserName(name)
+                    runCatching {
+                        backupSyncManager.backupCurrentUserProfile(
+                            name = name,
+                            accountCreatedDate = userPreferences.getAccountCreatedDate()
+                        )
+                    }
                     firebaseAuth.signOut()
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -154,6 +161,12 @@ class LoginViewModel @Inject constructor(
                     .ifEmpty { firebaseAuth.currentUser?.displayName?.trim().orEmpty() }
                 if (resolvedName.isNotEmpty()) {
                     userPreferences.saveUserName(resolvedName)
+                    runCatching {
+                        backupSyncManager.backupCurrentUserProfile(
+                            name = resolvedName,
+                            accountCreatedDate = userPreferences.getAccountCreatedDate()
+                        )
+                    }
                 }
                 backupSyncManager.runPostLoginSync()
                 _uiState.value = _uiState.value.copy(isLoading = false)
