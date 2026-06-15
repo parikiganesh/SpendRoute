@@ -10,10 +10,12 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalGroceryStore
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,11 +52,12 @@ object CategoryConstants {
 
     val expenseCategories = listOf(
         CategoryOption("Food", Icons.Default.Dining, TransactionType.EXPENSE),
+        CategoryOption("Groceries", Icons.Default.LocalGroceryStore, TransactionType.EXPENSE),
         CategoryOption("Rent", Icons.Default.Home, TransactionType.EXPENSE),
         CategoryOption("Travel", Icons.Default.DirectionsCar, TransactionType.EXPENSE),
         CategoryOption("Entertainment", Icons.Default.Movie, TransactionType.EXPENSE),
         CategoryOption("Bills", Icons.Default.ElectricBolt, TransactionType.EXPENSE),
-        CategoryOption("Shopping", Icons.Default.ShoppingCart, TransactionType.EXPENSE),
+        CategoryOption("Shopping", Icons.Default.ShoppingBag, TransactionType.EXPENSE),
         CategoryOption("Healthcare", Icons.Default.LocalHospital, TransactionType.EXPENSE),
         CategoryOption("Education", Icons.Default.School, TransactionType.EXPENSE),
         CategoryOption("Utilities", Icons.Default.Construction, TransactionType.EXPENSE),
