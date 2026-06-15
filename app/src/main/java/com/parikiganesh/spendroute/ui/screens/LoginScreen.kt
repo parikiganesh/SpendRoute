@@ -51,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.ApiException
@@ -77,10 +78,12 @@ fun LoginScreen(
     val forgotPasswordEmail = remember { mutableStateOf("") }
     val isSendingReset = remember { mutableStateOf(false) }
     val resetSuccessMessage = remember { mutableStateOf("") }
+    val isPreparingGoogleSignIn = remember { mutableStateOf(false) }
 
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        isPreparingGoogleSignIn.value = false
         val data = result.data
         try {
             val account = GoogleSignIn.getSignedInAccountFromIntent(data)
@@ -89,7 +92,11 @@ fun LoginScreen(
             if (idToken.isNullOrBlank()) {
                 Toast.makeText(context, "Google token unavailable", Toast.LENGTH_SHORT).show()
             } else {
-                viewModel.signInWithGoogleIdToken(idToken, onLoginSuccess)
+                viewModel.signInWithGoogleIdToken(
+                    idToken = idToken,
+                    googleDisplayName = account.displayName,
+                    onSuccess = onLoginSuccess
+                )
             }
         } catch (e: ApiException) {
             val message = when (e.statusCode) {
@@ -113,19 +120,25 @@ fun LoginScreen(
         onOpenPrivacy = { openExternalLink(context, PRIVACY_URL) },
         onPrimaryAction = { viewModel.signInOrRegister(onLoginSuccess) },
         onGoogleAction = {
+            if (state.isLoading || isPreparingGoogleSignIn.value) {
+                return@LoginScreenContent
+            }
+
             if (!hasInternetConnection(context)) {
                 Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 return@LoginScreenContent
             }
 
-            // Sign out from Google first to force account picker on every sign-in
-            GoogleSignIn.getClient(context, GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()).signOut()
-
-            val intent = buildGoogleSignInIntent(context)
-            if (intent == null) {
+            val googleClient = buildGoogleSignInClient(context)
+            if (googleClient == null) {
                 Toast.makeText(context, "Google Sign-In not configured yet", Toast.LENGTH_LONG).show()
             } else {
-                googleLauncher.launch(intent)
+                isPreparingGoogleSignIn.value = true
+                // Wait for sign-out completion to avoid launching sign-in during a stale session transition.
+                googleClient.signOut().addOnCompleteListener {
+                    isPreparingGoogleSignIn.value = false
+                    googleLauncher.launch(googleClient.signInIntent)
+                }
             }
         },
         onForgotPasswordClick = { showForgotPasswordDialog.value = true },
@@ -578,7 +591,7 @@ private fun ForgotPasswordDialog(
     )
 }
 
-private fun buildGoogleSignInIntent(context: Context) = run {
+private fun buildGoogleSignInClient(context: Context): GoogleSignInClient? = run {
     val webClientIdRes = context.resources.getIdentifier(
         "default_web_client_id",
         "string",
@@ -592,7 +605,7 @@ private fun buildGoogleSignInIntent(context: Context) = run {
             .requestEmail()
             .requestIdToken(webClientId)
             .build()
-        GoogleSignIn.getClient(context, gso).signInIntent
+        GoogleSignIn.getClient(context, gso)
     }
 }
 

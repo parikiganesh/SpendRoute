@@ -140,12 +140,21 @@ class LoginViewModel @Inject constructor(
         return user?.providerData?.any { it.providerId == PASSWORD_PROVIDER_ID } == true
     }
 
-    fun signInWithGoogleIdToken(idToken: String, onSuccess: () -> Unit) {
+    fun signInWithGoogleIdToken(
+        idToken: String,
+        googleDisplayName: String?,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             try {
                 val credential = GoogleAuthProvider.getCredential(idToken, null)
                 firebaseAuth.signInWithCredential(credential).await()
+                val resolvedName = googleDisplayName?.trim().orEmpty()
+                    .ifEmpty { firebaseAuth.currentUser?.displayName?.trim().orEmpty() }
+                if (resolvedName.isNotEmpty()) {
+                    userPreferences.saveUserName(resolvedName)
+                }
                 backupSyncManager.runPostLoginSync()
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 onSuccess()
