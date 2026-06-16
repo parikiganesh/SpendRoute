@@ -66,7 +66,6 @@ import com.parikiganesh.spendroute.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onSkipForNow: () -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -142,8 +141,7 @@ fun LoginScreen(
                 }
             }
         },
-        onForgotPasswordClick = { showForgotPasswordDialog.value = true },
-        onSkipForNow = onSkipForNow
+        onForgotPasswordClick = { showForgotPasswordDialog.value = true }
     )
 
     if (showForgotPasswordDialog.value) {
@@ -190,8 +188,7 @@ private fun LoginScreenContent(
     onOpenPrivacy: () -> Unit = {},
     onPrimaryAction: () -> Unit,
     onGoogleAction: () -> Unit,
-    onForgotPasswordClick: () -> Unit = {},
-    onSkipForNow: () -> Unit
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -460,23 +457,6 @@ private fun LoginScreenContent(
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Skip for now - ",
-                        color = Color(0xFF8E8E99),
-                        style = LocalTypography.current.bodyMediumRegular
-                    )
-                    Text(
-                        text = "continue without account",
-                        color = Color(0xFF5B4B9B),
-                        style = LocalTypography.current.bodyLargeSemibold,
-                        modifier = Modifier.clickable { onSkipForNow() }
-                    )
-                }
             }
         }
     }
@@ -502,8 +482,7 @@ private fun LoginScreenPreview() {
             onOpenPrivacy = {},
             onPrimaryAction = {},
             onGoogleAction = {},
-            onForgotPasswordClick = {},
-            onSkipForNow = {}
+            onForgotPasswordClick = {}
         )
     }
 }

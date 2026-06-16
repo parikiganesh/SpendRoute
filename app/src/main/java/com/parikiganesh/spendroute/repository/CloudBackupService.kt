@@ -2,6 +2,7 @@ package com.parikiganesh.spendroute.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.parikiganesh.spendroute.data.model.Transaction
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -48,20 +49,21 @@ class CloudBackupService @Inject constructor(
     }
 
     suspend fun backupUserName(name: String) {
-        val uid = currentUserId() ?: return
-        val trimmedName = name.trim()
-        if (trimmedName.isEmpty()) return
+         val uid = currentUserId() ?: return
+         val trimmedName = name.trim()
+         if (trimmedName.isEmpty()) return
 
-        firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .set(
-                mapOf(
-                    USER_NAME_FIELD to trimmedName,
-                    USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
-                )
-            )
-            .await()
-    }
+         firestore.collection(USERS_COLLECTION)
+             .document(uid)
+             .set(
+                 mapOf(
+                     USER_NAME_FIELD to trimmedName,
+                     USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
+                 ),
+                 SetOptions.merge()
+             )
+             .await()
+     }
 
     suspend fun restoreUserName(): String {
         val uid = currentUserId() ?: return ""
@@ -73,20 +75,21 @@ class CloudBackupService @Inject constructor(
     }
 
     suspend fun backupAccountCreatedDate(accountCreatedDate: String) {
-        val uid = currentUserId() ?: return
-        val trimmedDate = accountCreatedDate.trim()
-        if (trimmedDate.isEmpty()) return
+         val uid = currentUserId() ?: return
+         val trimmedDate = accountCreatedDate.trim()
+         if (trimmedDate.isEmpty()) return
 
-        firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .set(
-                mapOf(
-                    ACCOUNT_CREATED_DATE_FIELD to trimmedDate,
-                    USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
-                )
-            )
-            .await()
-    }
+         firestore.collection(USERS_COLLECTION)
+             .document(uid)
+             .set(
+                 mapOf(
+                     ACCOUNT_CREATED_DATE_FIELD to trimmedDate,
+                     USER_PROFILE_UPDATED_AT_FIELD to System.currentTimeMillis()
+                 ),
+                 SetOptions.merge()
+             )
+             .await()
+     }
 
     suspend fun restoreAccountCreatedDate(): String {
         val uid = currentUserId() ?: return ""

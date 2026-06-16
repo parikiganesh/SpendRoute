@@ -199,9 +199,6 @@ fun SpendRouteApp(
                 onLoginSuccess = {
                     isLoggedIn.value = true
                     currentScreen.value = "dashboard"
-                },
-                onSkipForNow = {
-                    currentScreen.value = "dashboard"
                 }
             )
         }

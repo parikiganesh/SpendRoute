@@ -97,17 +97,25 @@ class LoginViewModel @Inject constructor(
             try {
                 if (state.isRegisterMode) {
                     firebaseAuth.createUserWithEmailAndPassword(state.email.trim(), state.password).await()
+                    println("DEBUG: Email signup successful, user created")
                     firebaseAuth.currentUser?.sendEmailVerification()?.await()
+                    println("DEBUG: Verification email sent")
                     // Save name to preferences after successful signup
                     val name = state.name.trim()
                     userPreferences.saveUserName(name)
-                    runCatching {
+                    println("DEBUG: Name saved locally: '$name'")
+                    try {
                         backupSyncManager.backupCurrentUserProfile(
                             name = name,
                             accountCreatedDate = userPreferences.getAccountCreatedDate()
                         )
+                        println("DEBUG: Name backed up to cloud")
+                    } catch (e: Exception) {
+                        println("DEBUG: Cloud profile backup failed during signup: ${e.message}")
+                        e.printStackTrace()
                     }
                     firebaseAuth.signOut()
+                    println("DEBUG: User signed out waiting for email verification")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isRegisterMode = false,
@@ -118,20 +126,24 @@ class LoginViewModel @Inject constructor(
                     return@launch
                 } else {
                     firebaseAuth.signInWithEmailAndPassword(state.email.trim(), state.password).await()
+                    println("DEBUG: Email login successful")
                     val user = firebaseAuth.currentUser
                     user?.reload()?.await()
                     if (user != null && requiresEmailVerification(user) && !user.isEmailVerified) {
                         user.sendEmailVerification().await()
                         firebaseAuth.signOut()
+                        println("DEBUG: Email not verified, new verification email sent")
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             errorMessage = "Please verify your email before logging in. We sent a new verification email. Check your spam folder if you don't see it."
                         )
                         return@launch
                     }
+                    println("DEBUG: Email is verified, proceeding with post-login sync")
                 }
 
                 backupSyncManager.runPostLoginSync()
+                println("DEBUG: Post-login sync completed")
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 onSuccess()
             } catch (e: Exception) {
@@ -161,11 +173,13 @@ class LoginViewModel @Inject constructor(
                     .ifEmpty { firebaseAuth.currentUser?.displayName?.trim().orEmpty() }
                 if (resolvedName.isNotEmpty()) {
                     userPreferences.saveUserName(resolvedName)
-                    runCatching {
+                    try {
                         backupSyncManager.backupCurrentUserProfile(
                             name = resolvedName,
                             accountCreatedDate = userPreferences.getAccountCreatedDate()
                         )
+                    } catch (e: Exception) {
+                        println("DEBUG: Cloud profile backup failed during Google sign-in: ${e.message}")
                     }
                 }
                 backupSyncManager.runPostLoginSync()
