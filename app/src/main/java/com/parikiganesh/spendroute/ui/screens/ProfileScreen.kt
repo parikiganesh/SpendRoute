@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -107,6 +108,13 @@ fun ProfileScreen(
             Toast.makeText(context, s.errorMessage, Toast.LENGTH_LONG).show()
             // Clear error after showing
             viewModel.clearError()
+        }
+    }
+
+    LaunchedEffect(s.contactSubmitMessage) {
+        if (!s.contactSubmitMessage.isNullOrEmpty()) {
+            Toast.makeText(context, s.contactSubmitMessage, Toast.LENGTH_LONG).show()
+            viewModel.clearContactSubmitMessage()
         }
     }
 
@@ -357,6 +365,34 @@ fun ProfileScreen(
                                         .background(Color(0xFFF0F0F0))
                                 )
 
+                                // Contact Us
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { viewModel.showContactDialog() }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.contact_us),
+                                        style = LocalTypography.current.bodyMediumPrimary,
+                                        color = Color(0xFF1C1B1F)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = stringResource(R.string.contact_us),
+                                        tint = Color.Black
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(Color(0xFFF0F0F0))
+                                )
+
                                 // Logout
                                 Row(
                                     modifier = Modifier
@@ -581,6 +617,79 @@ fun ProfileScreen(
                     )
                 ) {
                     Text(stringResource(R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (s.showContactDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hideContactDialog() },
+            title = {
+                Text(
+                    text = stringResource(R.string.contact_us),
+                    style = LocalTypography.current.headingSmallSemibold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.contact_us_message),
+                        style = LocalTypography.current.bodySmallNormal,
+                        color = Color(0xFF5F5F5F)
+                    )
+                    OutlinedTextField(
+                        value = s.contactName,
+                        onValueChange = viewModel::updateContactName,
+                        label = { Text(stringResource(R.string.name)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = s.contactEmail,
+                        onValueChange = viewModel::updateContactEmail,
+                        label = { Text(stringResource(R.string.email)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = s.contactIssue,
+                        onValueChange = viewModel::updateContactIssue,
+                        label = { Text(stringResource(R.string.brief_issue)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.submitContactRequest() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5B4B9B),
+                        contentColor = Color.White
+                    ),
+                    enabled = !s.isSubmittingContact
+                ) {
+                    Text(
+                        if (s.isSubmittingContact) {
+                            stringResource(R.string.submitting)
+                        } else {
+                            stringResource(R.string.submit)
+                        }
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { viewModel.hideContactDialog() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF5F5F5),
+                        contentColor = Color(0xFF5B4B9B)
+                    ),
+                    enabled = !s.isSubmittingContact
+                ) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

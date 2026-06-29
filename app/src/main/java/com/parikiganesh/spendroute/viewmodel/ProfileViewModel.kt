@@ -1,10 +1,12 @@
 package com.parikiganesh.spendroute.viewmodel
 
 import android.content.Context
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parikiganesh.spendroute.data.UserPreferences
 import com.parikiganesh.spendroute.data.model.Transaction
+import com.parikiganesh.spendroute.repository.CloudBackupService
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.CsvExporter
 import com.parikiganesh.spendroute.utils.NotificationPreferences
@@ -54,7 +56,15 @@ data class ProfileState(
     
     // Privacy dialog state
     val showPrivacyDialog: Boolean = false,
-    
+
+    // Contact us dialog state
+    val showContactDialog: Boolean = false,
+    val contactName: String = "",
+    val contactEmail: String = "",
+    val contactIssue: String = "",
+    val isSubmittingContact: Boolean = false,
+    val contactSubmitMessage: String? = null,
+
     // User info
     val userName: String = "",
     val userInitials: String = "",
@@ -72,6 +82,7 @@ data class ProfileState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: TransactionRepository,
+    private val cloudBackupService: CloudBackupService,
     private val userPreferences: UserPreferences,
     private val notificationPreferences: NotificationPreferences,
     @ApplicationContext private val context: Context
@@ -105,7 +116,8 @@ class ProfileViewModel @Inject constructor(
             userName = userName,
             userInitials = userInitials,
             accountCreatedDate = accountCreatedDate,
-            appVersion = appVersion
+            appVersion = appVersion,
+            contactName = _state.value.contactName.ifBlank { userName }
         )
     }
     
@@ -407,7 +419,76 @@ class ProfileViewModel @Inject constructor(
     fun hidePrivacyDialog() {
         _state.value = _state.value.copy(showPrivacyDialog = false)
     }
-    
+
+    fun showContactDialog() {
+        _state.value = _state.value.copy(
+            showContactDialog = true,
+            contactName = _state.value.contactName.ifBlank { _state.value.userName }
+        )
+    }
+
+    fun hideContactDialog() {
+        _state.value = _state.value.copy(showContactDialog = false)
+    }
+
+    fun updateContactName(value: String) {
+        _state.value = _state.value.copy(contactName = value)
+    }
+
+    fun updateContactEmail(value: String) {
+        _state.value = _state.value.copy(contactEmail = value)
+    }
+
+    fun updateContactIssue(value: String) {
+        _state.value = _state.value.copy(contactIssue = value)
+    }
+
+    fun submitContactRequest() {
+        val name = _state.value.contactName.trim()
+        val email = _state.value.contactEmail.trim()
+        val issue = _state.value.contactIssue.trim()
+
+        when {
+            name.isEmpty() -> {
+                _state.value = _state.value.copy(errorMessage = "Please enter your name")
+                return
+            }
+
+            email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                _state.value = _state.value.copy(errorMessage = "Please enter a valid email")
+                return
+            }
+
+            issue.length < 10 -> {
+                _state.value = _state.value.copy(errorMessage = "Please describe your issue in at least 10 characters")
+                return
+            }
+        }
+
+        _state.value = _state.value.copy(isSubmittingContact = true, errorMessage = null)
+        viewModelScope.launch {
+            runCatching {
+                cloudBackupService.submitContactRequest(name = name, email = email, issue = issue)
+            }.onSuccess {
+                _state.value = _state.value.copy(
+                    isSubmittingContact = false,
+                    showContactDialog = false,
+                    contactIssue = "",
+                    contactSubmitMessage = "Thanks! Your issue was submitted."
+                )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    isSubmittingContact = false,
+                    errorMessage = error.message ?: "Failed to submit issue"
+                )
+            }
+        }
+    }
+
+    fun clearContactSubmitMessage() {
+        _state.value = _state.value.copy(contactSubmitMessage = null)
+    }
+
     /**
      * Clear error message
      */

@@ -293,7 +293,7 @@ private fun LoginScreenContent(
                         OutlinedTextField(
                             value = state.name,
                             onValueChange = onNameChange,
-                            placeholder = { Text("Enter your name") },
+                            placeholder = { Text("Enter your name", color = Color(0xFF9D99AD)) },
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Words
@@ -316,7 +316,7 @@ private fun LoginScreenContent(
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = onEmailChange,
-                        placeholder = { Text("you@example.com") },
+                        placeholder = { Text("you@email.com", color = Color(0xFF9D99AD)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -335,7 +335,7 @@ private fun LoginScreenContent(
                     OutlinedTextField(
                         value = state.password,
                         onValueChange = onPasswordChange,
-                        placeholder = { Text(if (state.isRegisterMode) "At least 6 characters" else "Enter your password") },
+                        placeholder = { Text(if (state.isRegisterMode) "At least 6 characters" else "Enter your password", color = Color(0xFF9D99AD)) },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,

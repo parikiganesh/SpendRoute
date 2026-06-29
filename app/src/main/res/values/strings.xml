@@ -60,6 +60,13 @@
     <string name="about">About</string>
     <string name="app_version">App version</string>
     <string name="privacy_policy">Privacy &amp; Policy</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="contact_us_message">Share your issue and we will look into it.</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="brief_issue">Brief about issue</string>
+    <string name="submit">Submit</string>
+    <string name="submitting">Submitting...</string>
     <string name="logout">Logout</string>
     <string name="default_web_client_id">612962722231-fuq9l6ecctktjl9h0463uu7v2q9nmmeg.apps.googleusercontent.com</string>
     <string name="privacy_icon_desc">Privacy</string>
@@ -75,7 +82,7 @@
     <string name="deleting_data">Deleting data...</string>
     <string name="data_restored">Data restored</string>
     <string name="undo">Undo</string>
-    <string name="privacy_content">Your data never leaves your device. We don\'t collect, store, or share any personal information.\n\nAll transactions and financial data are stored locally on your device only. SpendRoute does not have access to any of your data.\n\nYour privacy is important to us. This app is designed to work completely offline without any internet connection required.</string>
+    <string name="privacy_content">SpendRoute stores your transactions and profile data in Firebase so you can access them across devices. We use Firebase Authentication for login, and sensitive fields like amount and notes are encrypted before cloud storage.\n\nWe only use your data to provide app features (transactions, profile sync, and Contact Us support). We do not sell your data. Your data is protected in transit (HTTPS) and by Firebase security rules.</string>
     <string name="notifications_enabled">Notifications enabled</string>
     <string name="notification_permission_denied">Notification permission denied.</string>
     <string name="notifications_disabled">Notifications disabled</string>
