@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "612962722231-97rn7l29840eo39cao040sgbb983akjc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.parikiganesh.spendroute",
+            "certificate_hash": "3b4df14d35ea1926069dffa90fccc95e7b52cf37"
+          }
+        },
+        {
+          "client_id": "612962722231-g0t7r3i5d42kaa2v6oqh1b1p19ni3eb2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.parikiganesh.spendroute",
+            "certificate_hash": "dd6eb188fa19edaa3deb51dfa44a0b8dff3d8e03"
+          }
+        },
+        {
           "client_id": "612962722231-fuq9l6ecctktjl9h0463uu7v2q9nmmeg.apps.googleusercontent.com",
           "client_type": 3
         }
