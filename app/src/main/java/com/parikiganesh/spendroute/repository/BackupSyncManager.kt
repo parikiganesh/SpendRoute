@@ -1,6 +1,13 @@
 package com.parikiganesh.spendroute.repository
 
 import com.parikiganesh.spendroute.data.UserPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -10,6 +17,9 @@ class BackupSyncManager @Inject constructor(
     private val cloudBackupService: CloudBackupService,
     private val userPreferences: UserPreferences
 ) {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var profileSyncJob: Job? = null
 
     suspend fun backupCurrentUserProfile(name: String, accountCreatedDate: String) {
         if (name.trim().isNotEmpty()) {
@@ -70,7 +80,25 @@ class BackupSyncManager @Inject constructor(
         }
 
         userPreferences.setLastAuthenticatedUserId(uid)
+        ensureProfileLiveSync()
         println("DEBUG: runPostLoginSync completed")
+    }
+
+    private fun ensureProfileLiveSync() {
+        if (profileSyncJob?.isActive == true) return
+
+        profileSyncJob = scope.launch {
+            cloudBackupService.observeUserProfile()
+                .distinctUntilChanged()
+                .collect { profile ->
+                    if (profile.name.isNotEmpty()) {
+                        userPreferences.saveUserName(profile.name)
+                    }
+                    if (profile.accountCreatedDate.isNotEmpty()) {
+                        userPreferences.setAccountCreatedDate(profile.accountCreatedDate)
+                    }
+                }
+        }
     }
 }
 

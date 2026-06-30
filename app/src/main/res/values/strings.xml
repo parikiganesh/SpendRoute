@@ -123,7 +123,7 @@
     <string name="spendroute_logo_desc">SpendRoute Logo</string>
     <string name="app_name_display">SpendRoute</string>
     <string name="app_tagline">Track your expenses smartly</string>
-    <string name="app_features">Offline · Secure · Private</string>
+    <string name="app_features">Secure • Synced • Insightful</string>
 
     <string name="delete_transaction_title">Delete Transaction?</string>
     <string name="transaction_details">Transaction Details</string>

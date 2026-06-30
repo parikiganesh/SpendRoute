@@ -9,6 +9,7 @@ import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.repository.CloudBackupService
 import com.parikiganesh.spendroute.repository.TransactionRepository
 import com.parikiganesh.spendroute.utils.CsvExporter
+import com.parikiganesh.spendroute.utils.DateTimeUtils
 import com.parikiganesh.spendroute.utils.NotificationPreferences
 import com.parikiganesh.spendroute.utils.PdfExporter
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -327,8 +329,19 @@ class ProfileViewModel @Inject constructor(
         
         // Delete all transactions
         viewModelScope.launch {
-            repository.deleteAllTransactions()
-            
+            try {
+                repository.deleteAllTransactions()
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    errorMessage = if (e is IOException && e.message == "No internet connection") {
+                        "No internet connection"
+                    } else {
+                        e.message ?: "Failed to clear all data"
+                    }
+                )
+                return@launch
+            }
+
             // Clear all user data
             userPreferences.clearAllUserData()
             
@@ -470,11 +483,12 @@ class ProfileViewModel @Inject constructor(
             runCatching {
                 cloudBackupService.submitContactRequest(name = name, email = email, issue = issue)
             }.onSuccess {
+                val submittedAt = DateTimeUtils.formatDateTimeFromMillis(System.currentTimeMillis())
                 _state.value = _state.value.copy(
                     isSubmittingContact = false,
                     showContactDialog = false,
                     contactIssue = "",
-                    contactSubmitMessage = "Thanks! Your issue was submitted."
+                    contactSubmitMessage = "Thanks! Your issue was submitted.\nSubmitted at: $submittedAt"
                 )
             }.onFailure { error ->
                 _state.value = _state.value.copy(
@@ -496,7 +510,3 @@ class ProfileViewModel @Inject constructor(
         _state.value = _state.value.copy(errorMessage = null)
     }
 }
-
-
-
-

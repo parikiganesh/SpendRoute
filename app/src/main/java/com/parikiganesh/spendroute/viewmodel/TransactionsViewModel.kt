@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 enum class FilterType {
@@ -31,6 +32,9 @@ class TransactionsViewModel @Inject constructor(
 
     private val _filteredTransactions = MutableStateFlow<List<Transaction>>(emptyList())
     val filteredTransactions: StateFlow<List<Transaction>> = _filteredTransactions.asStateFlow()
+
+    private val _uiMessage = MutableStateFlow<String?>(null)
+    val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
 
     init {
         loadTransactions()
@@ -84,14 +88,36 @@ class TransactionsViewModel @Inject constructor(
 
     fun deleteTransaction(transactionId: String) {
         viewModelScope.launch {
-            repository.deleteTransaction(transactionId)
+            try {
+                repository.deleteTransaction(transactionId)
+                _uiMessage.value = "Transaction deleted successfully!"
+            } catch (e: Exception) {
+                _uiMessage.value = if (e is IOException && e.message == "No internet connection") {
+                    "No internet connection"
+                } else {
+                    e.message ?: "Failed to delete transaction"
+                }
+            }
         }
     }
 
     fun deleteAllTransactions() {
         viewModelScope.launch {
-            repository.deleteAllTransactions()
+            try {
+                repository.deleteAllTransactions()
+                _uiMessage.value = "All transactions deleted"
+            } catch (e: Exception) {
+                _uiMessage.value = if (e is IOException && e.message == "No internet connection") {
+                    "No internet connection"
+                } else {
+                    e.message ?: "Failed to clear transactions"
+                }
+            }
         }
+    }
+
+    fun clearUiMessage() {
+        _uiMessage.value = null
     }
 }
 

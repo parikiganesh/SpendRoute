@@ -18,8 +18,8 @@ android {
         applicationId = "com.parikiganesh.spendroute"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10
-        versionName = "2.0.4"
+        versionCode = 11
+        versionName = "2.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,8 +54,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material-icons-extended")
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
     implementation(libs.vico)
     implementation(libs.androidx.compose.foundation.layout)
     implementation("androidx.work:work-runtime-ktx:2.11.2")
@@ -69,7 +67,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
-    ksp(libs.androidx.room.compiler)
     ksp("com.google.dagger:hilt-compiler:2.59.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

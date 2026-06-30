@@ -51,6 +51,16 @@ object DateTimeUtils {
     }
 
     /**
+     * Format date-time from milliseconds to string (e.g., "Jun 30, 2026 2:45 PM")
+     *
+     * Use this for Firestore int64 timestamps like `createdAt`.
+     */
+    fun formatDateTimeFromMillis(millis: Long): String {
+        val dateTimeFormat = SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault())
+        return dateTimeFormat.format(Date(millis))
+    }
+
+    /**
      * Format time from Date object to string (e.g., "2:30 PM")
      */
     fun formatTime(date: Date): String {

@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.util.UUID
 import javax.inject.Inject
 
 /**
@@ -25,7 +27,8 @@ data class AddTransactionFormState(
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val isLoading: Boolean = false,
     val validationError: String? = null,
-    val isFormValid: Boolean = false
+    val isFormValid: Boolean = false,
+    val saveCompleted: Boolean = false
 )
 
 @HiltViewModel
@@ -90,6 +93,7 @@ class AddTransactionViewModel @Inject constructor(
 
         _formState.value = state.copy(
             isFormValid = isValid,
+            saveCompleted = false,
             validationError = when {
                 state.amount.isEmpty() -> null
                 state.selectedCategory == null -> null
@@ -113,7 +117,7 @@ class AddTransactionViewModel @Inject constructor(
         _formState.value = state.copy(isLoading = true)
 
         val transaction = Transaction(
-            id = System.currentTimeMillis().toString(),
+            id = UUID.randomUUID().toString(),
             title = state.selectedCategory!!,
             category = state.selectedCategory,
             amount = state.amount.toDouble(),
@@ -127,12 +131,18 @@ class AddTransactionViewModel @Inject constructor(
             try {
                 repository.insertTransaction(transaction)
                 _formState.value = AddTransactionFormState(
-                    selectedDate = DateTimeUtils.getCurrentDate()
+                    selectedDate = DateTimeUtils.getCurrentDate(),
+                    saveCompleted = true
                 )
             } catch (e: Exception) {
+                val message = if (e is IOException && e.message == "No internet connection") {
+                    "No internet connection"
+                } else {
+                    "Error saving transaction: ${e.message}"
+                }
                 _formState.value = state.copy(
                     isLoading = false,
-                    validationError = "Error saving transaction: ${e.message}"
+                    validationError = message
                 )
             }
         }
@@ -165,12 +175,18 @@ class AddTransactionViewModel @Inject constructor(
             try {
                 repository.updateTransaction(transaction)
                 _formState.value = AddTransactionFormState(
-                    selectedDate = DateTimeUtils.getCurrentDate()
+                    selectedDate = DateTimeUtils.getCurrentDate(),
+                    saveCompleted = true
                 )
             } catch (e: Exception) {
+                val message = if (e is IOException && e.message == "No internet connection") {
+                    "No internet connection"
+                } else {
+                    "Error updating transaction: ${e.message}"
+                }
                 _formState.value = state.copy(
                     isLoading = false,
-                    validationError = "Error updating transaction: ${e.message}"
+                    validationError = message
                 )
             }
         }
@@ -197,6 +213,10 @@ class AddTransactionViewModel @Inject constructor(
         _formState.value = AddTransactionFormState(
             selectedDate = DateTimeUtils.getCurrentDate()
         )
+    }
+
+    fun clearSaveCompleted() {
+        _formState.value = _formState.value.copy(saveCompleted = false)
     }
 }
 

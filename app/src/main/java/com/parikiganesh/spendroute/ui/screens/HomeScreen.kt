@@ -1,5 +1,6 @@
 package com.parikiganesh.spendroute.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +34,7 @@ fun HomeScreen(
     val balanceInfo = viewModel.balanceInfo.collectAsState()
     val recentTransactions = viewModel.recentTransactions.collectAsState()
     val userName = viewModel.userName.collectAsState()
+    val uiMessage = viewModel.uiMessage.collectAsState()
 
     // Get user info from ViewModel or preferences for initials
     val context = LocalContext.current
@@ -42,6 +44,13 @@ fun HomeScreen(
     // Refresh user name when screen is displayed (in case it was updated)
     LaunchedEffect(Unit) {
         viewModel.loadUserName()
+    }
+
+    LaunchedEffect(uiMessage.value) {
+        uiMessage.value?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearUiMessage()
+        }
     }
 
 

@@ -1,110 +1,105 @@
 package com.parikiganesh.spendroute.repository
 
-import com.parikiganesh.spendroute.data.local.dao.TransactionDao
-import com.parikiganesh.spendroute.data.local.entity.TransactionEntity
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.parikiganesh.spendroute.data.model.Transaction
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 class TransactionRepository @Inject constructor(
-    private val transactionDao: TransactionDao,
+    @ApplicationContext private val context: Context,
     private val cloudBackupService: CloudBackupService
 ) {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val transactionsState = MutableStateFlow<List<Transaction>>(emptyList())
+
+    init {
+        scope.launch {
+            cloudBackupService.observeTransactions().collect { transactions ->
+                transactionsState.value = transactions
+            }
+        }
+    }
+
     // Get all transactions
     fun getAllTransactions(): Flow<List<Transaction>> {
-        return transactionDao.getAllTransactions().map { entities ->
-            entities.map { it.toTransaction() }
-        }
-    }
-
-    // Get income transactions only
-    fun getIncomeTransactions(): Flow<List<Transaction>> {
-        return transactionDao.getIncomeTransactions().map { entities ->
-            entities.map { it.toTransaction() }
-        }
-    }
-
-    // Get expense transactions only
-    fun getExpenseTransactions(): Flow<List<Transaction>> {
-        return transactionDao.getExpenseTransactions().map { entities ->
-            entities.map { it.toTransaction() }
-        }
+        return transactionsState.asStateFlow()
     }
 
     // Insert transaction
     suspend fun insertTransaction(transaction: Transaction) {
-        transactionDao.insertTransaction(transaction.toEntity())
-        syncToCloudIfLoggedIn()
+        val previous = transactionsState.value
+        ensureOnline()
+        transactionsState.value = listOf(transaction) + previous.filterNot { it.id == transaction.id }
+        try {
+            val created = cloudBackupService.createTransactionWithSequentialId(transaction)
+            transactionsState.value = listOf(created) +
+                transactionsState.value.filterNot { it.id == transaction.id || it.id == created.id }
+        } catch (e: Exception) {
+            transactionsState.value = previous
+            throw e
+        }
     }
 
     // Update transaction
     suspend fun updateTransaction(transaction: Transaction) {
-        transactionDao.updateTransaction(transaction.toEntity())
-        syncToCloudIfLoggedIn()
+        val previous = transactionsState.value
+        ensureOnline()
+        transactionsState.value = previous.map { existing ->
+            if (existing.id == transaction.id) transaction else existing
+        }
+        try {
+            cloudBackupService.upsertTransaction(transaction)
+        } catch (e: Exception) {
+            transactionsState.value = previous
+            throw e
+        }
     }
 
     // Delete transaction by ID
     suspend fun deleteTransaction(transactionId: String) {
-        transactionDao.deleteTransactionById(transactionId.toIntOrNull() ?: return)
-        syncToCloudIfLoggedIn()
-    }
-
-    // Delete transaction object
-    suspend fun deleteTransactionObject(transaction: Transaction) {
-        transactionDao.deleteTransaction(transaction.toEntity())
-        syncToCloudIfLoggedIn()
+        ensureOnline()
+        // Optimistic update for snappier UI; realtime listener will reconcile with cloud.
+        transactionsState.value = transactionsState.value.filterNot { it.id == transactionId }
+        cloudBackupService.deleteTransactionById(transactionId)
     }
 
     // Delete all transactions
     suspend fun deleteAllTransactions() {
-        transactionDao.deleteAllTransactions()
-        syncToCloudIfLoggedIn()
+        ensureOnline()
+        cloudBackupService.clearAllCloudTransactions()
+        transactionsState.value = emptyList()
     }
 
     suspend fun getAllTransactionsSnapshot(): List<Transaction> {
-        return transactionDao.getAllTransactionsOnce().map { it.toTransaction() }
+        return transactionsState.value
     }
 
     suspend fun replaceLocalTransactions(transactions: List<Transaction>) {
-        transactionDao.deleteAllTransactions()
-        if (transactions.isNotEmpty()) {
-            transactionDao.insertTransactions(transactions.map { it.toEntity() })
+        transactionsState.value = transactions
+    }
+
+
+    private fun ensureOnline() {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        val hasInternet = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+
+        if (!hasInternet) {
+            throw IOException("No internet connection")
         }
-    }
-
-    private suspend fun syncToCloudIfLoggedIn() {
-        val local = transactionDao.getAllTransactionsOnce().map { it.toTransaction() }
-        cloudBackupService.backupTransactions(local)
-    }
-
-    // Helper: Entity to Model
-    private fun TransactionEntity.toTransaction(): Transaction {
-        return Transaction(
-            id = this.id.toString(),
-            title = this.title,
-            category = this.category,
-            amount = this.amount,
-            date = this.date,
-            time = this.time,
-            isIncome = this.isIncome,
-            note = this.note
-        )
-    }
-
-    // Helper: Model to Entity
-    private fun Transaction.toEntity(): TransactionEntity {
-        return TransactionEntity(
-            id = this.id.toIntOrNull() ?: 0,
-            title = this.title,
-            category = this.category,
-            amount = this.amount,
-            date = this.date,
-            time = this.time,
-            isIncome = this.isIncome,
-            note = this.note
-        )
     }
 }
 

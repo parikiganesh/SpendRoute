@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,6 +35,9 @@ class HomeViewModel @Inject constructor(
     
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName.asStateFlow()
+
+    private val _uiMessage = MutableStateFlow<String?>(null)
+    val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
 
     init {
         loadUserName()
@@ -104,8 +108,21 @@ class HomeViewModel @Inject constructor(
     
     fun deleteTransaction(transactionId: String) {
         viewModelScope.launch {
-            repository.deleteTransaction(transactionId)
+            try {
+                repository.deleteTransaction(transactionId)
+                _uiMessage.value = "Transaction deleted successfully!"
+            } catch (e: Exception) {
+                _uiMessage.value = if (e is IOException && e.message == "No internet connection") {
+                    "No internet connection"
+                } else {
+                    e.message ?: "Failed to delete transaction"
+                }
+            }
         }
+    }
+
+    fun clearUiMessage() {
+        _uiMessage.value = null
     }
 }
 

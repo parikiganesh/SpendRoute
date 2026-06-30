@@ -113,6 +113,28 @@ fun AddTransactionScreen(
     val categories = CategoryConstants.getCategories(state.transactionType)
     val isEditing = transactionToEdit != null
     val context = LocalContext.current
+    val transactionSavedText = stringResource(R.string.transaction_saved)
+    val transactionUpdatedText = stringResource(R.string.transaction_updated)
+
+    LaunchedEffect(state.validationError) {
+        state.validationError?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(state.saveCompleted) {
+        if (state.saveCompleted) {
+            val successText = if (isEditing) transactionUpdatedText else transactionSavedText
+            Toast.makeText(context, successText, Toast.LENGTH_SHORT).show()
+            if (isEditing) {
+                onClearEdit()
+            } else {
+                onTransactionAdded()
+            }
+            onNavigateToHome()
+            viewModel.clearSaveCompleted()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -477,21 +499,12 @@ fun AddTransactionScreen(
 
             // Save Button
             item {
-                val transactionSavedText = stringResource(R.string.transaction_saved)
-                val transactionUpdatedText = stringResource(R.string.transaction_updated)
-                
                 Button(
                     onClick = {
                         if (isEditing) {
                             viewModel.updateTransaction(transactionToEdit.id)
-                            Toast.makeText(context, transactionUpdatedText, Toast.LENGTH_SHORT).show()
-                            onClearEdit()
-                            onNavigateToHome()
                         } else {
                             viewModel.saveTransaction()
-                            Toast.makeText(context, transactionSavedText, Toast.LENGTH_SHORT).show()
-                            onTransactionAdded()
-                            onNavigateToHome()
                         }
                     },
                     modifier = Modifier

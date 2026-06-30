@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.Alignment
@@ -52,6 +53,14 @@ fun TransactionsScreen(
     val searchQuery = viewModel.searchQuery.collectAsState()
     val selectedFilter = viewModel.filterType.collectAsState()
     val filteredTransactions = viewModel.filteredTransactions.collectAsState()
+    val uiMessage = viewModel.uiMessage.collectAsState()
+
+    LaunchedEffect(uiMessage.value) {
+        uiMessage.value?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearUiMessage()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -139,8 +148,6 @@ fun TransactionsScreen(
 
         // Transaction List - Using RecentTransactions Component
         item {
-            val transactionDeletedText = stringResource(R.string.transaction_deleted)
-            
             if (filteredTransactions.value.isNotEmpty()) {
                 RecentTransactions(
                     transactions = filteredTransactions.value,
@@ -151,7 +158,6 @@ fun TransactionsScreen(
                     },
                     onDeleteTransaction = { transactionId ->
                         viewModel.deleteTransaction(transactionId)
-                        Toast.makeText(context, transactionDeletedText, Toast.LENGTH_SHORT).show()
                     }
                 )
             }
