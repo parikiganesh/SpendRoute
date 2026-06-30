@@ -18,8 +18,8 @@ android {
         applicationId = "com.parikiganesh.spendroute"
         minSdk = 24
         targetSdk = 36
-        versionCode = 11
-        versionName = "2.0.5"
+        versionCode = 12
+        versionName = "2.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
