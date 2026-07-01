@@ -53,7 +53,7 @@ object PdfExporter {
     private data class TableColumn(val title: String, val width: Float)
 
     private val baseTableColumns = listOf(
-        TableColumn("Date & Time", 92f),
+        TableColumn("Date", 92f),
         TableColumn("Description", 108f),
         TableColumn("Category", 82f),
         TableColumn("Type", 58f),
@@ -79,9 +79,10 @@ object PdfExporter {
      * 
      * @param context Android context
      * @param transactions List of transactions to export
+     * @param userName User name shown in the header area (optional)
      * @return File URI that can be used to share the file
      */
-    fun exportTransactionsToPDF(context: Context, transactions: List<Transaction>): Uri? {
+    fun exportTransactionsToPDF(context: Context, transactions: List<Transaction>, userName: String = ""): Uri? {
         val timestamp = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault()).format(Date())
         val file = File(context.cacheDir, "SpendRoute_Report_$timestamp.pdf")
         val sortedTransactions = transactions.sortedBy { parseTransactionTime(it) }
@@ -100,6 +101,7 @@ object PdfExporter {
             var y = MARGIN.toFloat()
 
             y = drawReportHeader(canvas, y, reportPeriod, generatedOn)
+            y = drawNameRow(canvas, y, userName)
             y += HEADER_GAP
             y = drawSummaryCards(canvas, y, totalIncome, totalExpense, closingBalance, rows.size)
             y += HEADER_GAP
@@ -203,6 +205,55 @@ object PdfExporter {
         y += 100f
         canvas.drawLine(SIDE_MARGIN, y, PAGE_WIDTH - SIDE_MARGIN, y, linePaint)
         return y
+    }
+
+    private fun drawNameRow(canvas: Canvas, startY: Float, userName: String): Float {
+        if (userName.isBlank()) return startY
+
+        val labelPaint = Paint().apply {
+            textSize = 11f
+            color = subtleTextColor
+            isAntiAlias = true
+            isFakeBoldText = true
+        }
+        val valuePaint = Paint().apply {
+            textSize = 11f
+            color = 0xFF1C1F2E.toInt()
+            isAntiAlias = true
+        }
+        val linePaint = Paint().apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1f
+            color = borderColor
+            isAntiAlias = true
+        }
+
+        val rowTop = startY
+        val rowBottom = rowTop + 26f
+        canvas.drawText("Account Name:", SIDE_MARGIN, rowTop + 18f, labelPaint)
+        drawLeftEllipsizedText(canvas, userName, SIDE_MARGIN + 42f, rowTop + 18f, PAGE_WIDTH - SIDE_MARGIN, valuePaint)
+        canvas.drawLine(SIDE_MARGIN, rowBottom, PAGE_WIDTH - SIDE_MARGIN, rowBottom, linePaint)
+
+        return rowBottom
+    }
+
+    private fun drawLeftEllipsizedText(
+        canvas: Canvas,
+        text: String,
+        startX: Float,
+        baselineY: Float,
+        maxRight: Float,
+        paint: Paint
+    ) {
+        val maxWidth = maxRight - startX
+        var drawText = text
+        if (paint.measureText(drawText) > maxWidth) {
+            while (drawText.isNotEmpty() && paint.measureText("$drawText...") > maxWidth) {
+                drawText = drawText.dropLast(1)
+            }
+            drawText = if (drawText.isEmpty()) "..." else "$drawText..."
+        }
+        canvas.drawText(drawText, startX, baselineY, paint)
     }
 
     private fun drawContinuationHeader(
@@ -424,10 +475,7 @@ object PdfExporter {
                     drawCenteredEllipsizedText(canvas, row.dateTime, cellLeft + 6f, top + 24f, cellRight - 6f, textPaint)
                 }
                 1 -> {
-                    drawCenteredEllipsizedText(canvas, row.description, cellLeft + 6f, top + 17f, cellRight - 6f, textPaint)
-                    if (!row.category.equals(row.description, ignoreCase = true)) {
-                        drawCenteredEllipsizedText(canvas, row.category, cellLeft + 6f, top + 31f, cellRight - 6f, subtlePaint)
-                    }
+                    drawCenteredEllipsizedText(canvas, row.description, cellLeft + 6f, top + 24f, cellRight - 6f, textPaint)
                 }
                 2 -> {
                     drawCenteredEllipsizedText(canvas, row.category, cellLeft + 6f, top + 24f, cellRight - 6f, textPaint)
@@ -488,32 +536,39 @@ object PdfExporter {
             strokeWidth = 1f
             isAntiAlias = true
         }
-        val totalPaint = Paint().apply {
+        val labelPaint = Paint().apply {
             textSize = 12f
             color = primaryColor
             isAntiAlias = true
             isFakeBoldText = true
+            textAlign = Paint.Align.CENTER
+        }
+        val totalTextPaint = Paint().apply {
+            textSize = 11f
+            color = subtleTextColor
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
         }
         val incomePaint = Paint().apply {
             textSize = 12f
             color = 0xFF24A55A.toInt()
             isAntiAlias = true
             isFakeBoldText = true
-            textAlign = Paint.Align.RIGHT
+            textAlign = Paint.Align.CENTER
         }
         val expensePaint = Paint().apply {
             textSize = 12f
             color = 0xFFE53935.toInt()
             isAntiAlias = true
             isFakeBoldText = true
-            textAlign = Paint.Align.RIGHT
+            textAlign = Paint.Align.CENTER
         }
         val balancePaint = Paint().apply {
             textSize = 12f
             color = primaryColor
             isAntiAlias = true
             isFakeBoldText = true
-            textAlign = Paint.Align.RIGHT
+            textAlign = Paint.Align.CENTER
         }
 
         val left = SIDE_MARGIN
@@ -523,19 +578,36 @@ object PdfExporter {
         canvas.drawRect(left, top, right, bottom, bgPaint)
         canvas.drawRect(left, top, right, bottom, borderPaint)
 
-        val firstSpanWidth = tableColumns.take(4).sumOf { it.width.toDouble() }.toFloat()
-        val amountWidth = tableColumns[4].width
-        val amountStart = left + firstSpanWidth
-        val balanceStart = amountStart + amountWidth
+        var x = left
+        tableColumns.forEachIndexed { index, column ->
+            val cellLeft = x
+            val cellRight = x + column.width
+            val centerX = (cellLeft + cellRight) / 2f
 
-        canvas.drawLine(amountStart, top, amountStart, bottom, borderPaint)
-        canvas.drawLine(balanceStart, top, balanceStart, bottom, borderPaint)
+            if (index != 0) {
+                canvas.drawLine(cellLeft, top, cellLeft, bottom, borderPaint)
+            }
 
-        canvas.drawText("TOTAL", left + 8f, top + 30f, totalPaint)
-        // Keep both totals inside the Amount column on separate lines to avoid overlap.
-        canvas.drawText("+ ${formatCurrency(totalIncome)}", balanceStart - 6f, top + 19f, incomePaint)
-        canvas.drawText("- ${formatCurrency(totalExpense)}", balanceStart - 6f, top + 38f, expensePaint)
-        canvas.drawText(formatCurrency(closingBalance), right - 6f, top + 30f, balancePaint)
+            when (index) {
+                0 -> {
+                    canvas.drawText("TOTAL", centerX, top + 30f, labelPaint)
+                }
+                1, 2 -> {
+                    canvas.drawText("-", centerX, top + 30f, totalTextPaint)
+                }
+                3 -> {
+                    canvas.drawText("-", centerX, top + 30f, totalTextPaint)
+                }
+                4 -> {
+                    canvas.drawText("+ ${formatCurrency(totalIncome)}", centerX, top + 19f, incomePaint)
+                    canvas.drawText("- ${formatCurrency(totalExpense)}", centerX, top + 38f, expensePaint)
+                }
+                5 -> {
+                    canvas.drawText(formatCurrency(closingBalance), centerX, top + 30f, balancePaint)
+                }
+            }
+            x += column.width
+        }
 
         return bottom
     }
@@ -584,20 +656,20 @@ object PdfExporter {
     }
 
     private fun buildRowsWithRunningBalance(transactions: List<Transaction>): List<StatementRow> {
-        var runningBalance = 0.0
-        return transactions.map { txn ->
-            runningBalance += if (txn.isIncome) txn.amount else -txn.amount
-            StatementRow(
-                dateTime = "${txn.date} ${txn.time}",
-                description = txn.title,
-                category = txn.category,
-                type = if (txn.isIncome) "INCOME" else "EXPENSE",
-                amount = txn.amount,
-                balance = runningBalance,
-                isIncome = txn.isIncome
-            )
-        }
-    }
+         var runningBalance = 0.0
+         return transactions.map { txn ->
+             runningBalance += if (txn.isIncome) txn.amount else -txn.amount
+             StatementRow(
+                 dateTime = txn.date,
+                 description = txn.note.takeIf { !it.isNullOrEmpty() } ?: "-", // Show notes or "-" if not available
+                 category = txn.category,
+                 type = if (txn.isIncome) "INCOME" else "EXPENSE",
+                 amount = txn.amount,
+                 balance = runningBalance,
+                 isIncome = txn.isIncome
+             )
+         }
+     }
 
     private fun parseTransactionTime(transaction: Transaction): Long {
         val dateTimeText = "${transaction.date} ${transaction.time}".trim()
@@ -614,11 +686,11 @@ object PdfExporter {
 
     private fun buildReportPeriod(transactions: List<Transaction>): String {
         if (transactions.isEmpty()) {
-            return SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
+            return SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date())
         }
         val minTime = transactions.minOf { parseTransactionTime(it) }
         val maxTime = transactions.maxOf { parseTransactionTime(it) }
-        val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+        val formatter = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         val start = formatter.format(Date(minTime))
         val end = formatter.format(Date(maxTime))
         return if (start == end) start else "$start - $end"

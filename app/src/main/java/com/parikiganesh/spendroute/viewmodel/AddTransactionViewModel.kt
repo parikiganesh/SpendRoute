@@ -118,8 +118,7 @@ class AddTransactionViewModel @Inject constructor(
 
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
-            title = state.selectedCategory!!,
-            category = state.selectedCategory,
+            category = state.selectedCategory!!,
             amount = state.amount.toDouble(),
             date = state.selectedDate,
             time = DateTimeUtils.getCurrentTime(),
@@ -162,8 +161,7 @@ class AddTransactionViewModel @Inject constructor(
 
         val transaction = Transaction(
             id = id,
-            title = state.selectedCategory!!,
-            category = state.selectedCategory,
+            category = state.selectedCategory!!,
             amount = state.amount.toDouble(),
             date = state.selectedDate,
             time = DateTimeUtils.getCurrentTime(),

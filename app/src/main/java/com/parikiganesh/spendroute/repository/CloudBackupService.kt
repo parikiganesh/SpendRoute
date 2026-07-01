@@ -384,7 +384,6 @@ class CloudBackupService @Inject constructor(
      */
     private fun transactionToMap(uid: String, transaction: Transaction): Map<String, Any?> {
         return mapOf(
-            "title" to transaction.title,
             "category" to transaction.category,
             "amount" to cloudEncryptionService.encryptForUser(uid, transaction.amount.toString()),
             "date" to transaction.date,
@@ -425,7 +424,7 @@ class CloudBackupService @Inject constructor(
      * @return Transaction object with decrypted fields, or null if required fields missing
      */
     private fun mapToTransaction(uid: String, id: String, data: Map<String, Any>): Transaction? {
-        val title = data["title"] as? String ?: return null
+        // Category is required (replaces redundant title field)
         val category = data["category"] as? String ?: return null
         val amount = decodeAmountField(uid, data["amount"]) ?: return null
         val date = data["date"] as? String ?: return null
@@ -435,7 +434,6 @@ class CloudBackupService @Inject constructor(
 
         return Transaction(
             id = id,
-            title = title,
             category = category,
             amount = amount,
             date = date,

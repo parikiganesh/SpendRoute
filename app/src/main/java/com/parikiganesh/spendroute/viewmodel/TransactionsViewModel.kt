@@ -78,8 +78,8 @@ class TransactionsViewModel @Inject constructor(
         // Apply search
         if (_searchQuery.value.isNotEmpty()) {
             transactions = transactions.filter { transaction ->
-                transaction.title.contains(_searchQuery.value, ignoreCase = true) ||
-                        transaction.category.contains(_searchQuery.value, ignoreCase = true)
+                transaction.category.contains(_searchQuery.value, ignoreCase = true) ||
+                        (transaction.note?.contains(_searchQuery.value, ignoreCase = true) ?: false)
             }
         }
 

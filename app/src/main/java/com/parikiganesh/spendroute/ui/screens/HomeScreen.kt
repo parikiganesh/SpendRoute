@@ -116,20 +116,22 @@ fun HomeScreen(
             }
 
             // Recent Transactions
-            item {
-                RecentTransactions(
-                    transactions = recentTransactions.value,
-                    onSeeAllClick = {
-                        onNavigateToTransactions()
-                    },
-                    onEditTransaction = { transaction ->
-                        onNavigateToAddEdit(transaction, null)
-                    },
-                    onDeleteTransaction = { transactionId ->
-                        viewModel.deleteTransaction(transactionId)
-                    },
-                    showActions = true
-                )
+            if (recentTransactions.value.isNotEmpty()) {
+                item {
+                    RecentTransactions(
+                        transactions = recentTransactions.value,
+                        onSeeAllClick = {
+                            onNavigateToTransactions()
+                        },
+                        onEditTransaction = { transaction ->
+                            onNavigateToAddEdit(transaction, null)
+                        },
+                        onDeleteTransaction = { transactionId ->
+                            viewModel.deleteTransaction(transactionId)
+                        },
+                        showActions = true
+                    )
+                }
             }
         }
     }

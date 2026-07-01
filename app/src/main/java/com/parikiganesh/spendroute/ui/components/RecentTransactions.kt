@@ -259,7 +259,7 @@ private fun SwipeableTransactionCard(
                     }
                     Column {
                         Text(
-                            text = transaction.title,
+                            text = transaction.category,
                             style = LocalTypography.current.bodyLargeSemibold,
                             color = Color(0xFF1C1B1F)
                         )
@@ -476,7 +476,7 @@ private fun SwipeableTransactionCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = transaction.title,
+                        text = transaction.category,
                         style = LocalTypography.current.bodyLargeSemibold,
                         color = Color(0xFF1C1B1F),
                         maxLines = 1,
@@ -515,8 +515,7 @@ fun RecentTransactionsPreview() {
             transactions = listOf(
                 Transaction(
                     id = "1",
-                    title = "Salary",
-                    category = "Income",
+                    category = "Salary",
                     amount = 50000.0,
                     date = "Today",
                     isIncome = true,
@@ -524,7 +523,6 @@ fun RecentTransactionsPreview() {
                 ),
                 Transaction(
                     id = "2",
-                    title = "Swiggy order",
                     category = "Food",
                     amount = 340.0,
                     date = "Today",
@@ -533,7 +531,6 @@ fun RecentTransactionsPreview() {
                 ),
                 Transaction(
                     id = "3",
-                    title = "Electricity bill",
                     category = "Bills",
                     amount = 1200.0,
                     date = "Yesterday",

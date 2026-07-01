@@ -473,7 +473,7 @@ fun ProfileScreen(
                         viewModel.exportAsPDF()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF7C6FD4),
+                        containerColor = Color(0xFF5B4B9B),
                         contentColor = Color.White
                     ),
                     enabled = !s.isExporting

@@ -253,7 +253,11 @@ class ProfileViewModel @Inject constructor(
                 }
                 
                 println("DEBUG: Exporting ${_state.value.allTransactions.size} transactions to PDF")
-                val fileUri = PdfExporter.exportTransactionsToPDF(context, _state.value.allTransactions)
+                val fileUri = PdfExporter.exportTransactionsToPDF(
+                    context,
+                    _state.value.allTransactions,
+                    _state.value.userName
+                )
                 println("DEBUG: PDF export returned URI: $fileUri")
                 
                 if (fileUri != null) {
