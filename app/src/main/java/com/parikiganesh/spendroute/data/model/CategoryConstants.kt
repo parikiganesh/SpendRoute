@@ -92,4 +92,3 @@ object CategoryConstants {
         return Icons.Default.Extension
     }
 }
-
