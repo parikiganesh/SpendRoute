@@ -4,6 +4,7 @@ import android.util.Base64
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.util.concurrent.ConcurrentHashMap
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
@@ -40,6 +41,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class CloudEncryptionService @Inject constructor() {
+
+    private val derivedKeyCache = ConcurrentHashMap<String, SecretKeySpec>()
 
     /**
      * Encrypts plaintext to "enc::BASE64(IV+CIPHERTEXT)" format.
@@ -128,6 +131,8 @@ class CloudEncryptionService @Inject constructor() {
      * @return SecretKeySpec ready for AES cipher initialization
      */
     private fun deriveKey(userId: String): SecretKeySpec {
+        derivedKeyCache[userId]?.let { return it }
+
         val spec = PBEKeySpec(
             userId.toCharArray(),
             DERIVATION_SALT,
@@ -136,7 +141,7 @@ class CloudEncryptionService @Inject constructor() {
         )
         val factory = SecretKeyFactory.getInstance(KEY_DERIVATION_ALG)
         val keyBytes = factory.generateSecret(spec).encoded
-        return SecretKeySpec(keyBytes, KEY_ALGORITHM)
+        return SecretKeySpec(keyBytes, KEY_ALGORITHM).also { derivedKeyCache[userId] = it }
     }
 
     private companion object {

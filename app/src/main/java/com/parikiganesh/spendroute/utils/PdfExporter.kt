@@ -80,9 +80,15 @@ object PdfExporter {
      * @param context Android context
      * @param transactions List of transactions to export
      * @param userName User name shown in the header area (optional)
+     * @param accountId Account id/email shown above name in the header area (optional)
      * @return File URI that can be used to share the file
      */
-    fun exportTransactionsToPDF(context: Context, transactions: List<Transaction>, userName: String = ""): Uri? {
+    fun exportTransactionsToPDF(
+        context: Context,
+        transactions: List<Transaction>,
+        userName: String = "",
+        accountId: String = ""
+    ): Uri? {
         val timestamp = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault()).format(Date())
         val file = File(context.cacheDir, "SpendRoute_Report_$timestamp.pdf")
         val sortedTransactions = transactions.sortedBy { parseTransactionTime(it) }
@@ -101,7 +107,7 @@ object PdfExporter {
             var y = MARGIN.toFloat()
 
             y = drawReportHeader(canvas, y, reportPeriod, generatedOn)
-            y = drawNameRow(canvas, y, userName)
+            y = drawAccountInfoRows(canvas, y, accountId, userName)
             y += HEADER_GAP
             y = drawSummaryCards(canvas, y, totalIncome, totalExpense, closingBalance, rows.size)
             y += HEADER_GAP
@@ -207,8 +213,10 @@ object PdfExporter {
         return y
     }
 
-    private fun drawNameRow(canvas: Canvas, startY: Float, userName: String): Float {
-        if (userName.isBlank()) return startY
+    private fun drawAccountInfoRows(canvas: Canvas, startY: Float, accountId: String, userName: String): Float {
+        val hasAccountId = accountId.isNotBlank()
+        val hasUserName = userName.isNotBlank()
+        if (!hasAccountId && !hasUserName) return startY
 
         val labelPaint = Paint().apply {
             textSize = 11f
@@ -228,10 +236,25 @@ object PdfExporter {
             isAntiAlias = true
         }
 
-        val rowTop = startY
-        val rowBottom = rowTop + 26f
-        canvas.drawText("Account Name:", SIDE_MARGIN, rowTop + 18f, labelPaint)
-        drawLeftEllipsizedText(canvas, userName, SIDE_MARGIN + 42f, rowTop + 18f, PAGE_WIDTH - SIDE_MARGIN, valuePaint)
+        var rowTop = startY
+
+        if (hasAccountId) {
+            val labelText = "Account ID:"
+            val valueStartX = SIDE_MARGIN + labelPaint.measureText(labelText) + 8f
+            canvas.drawText(labelText, SIDE_MARGIN, rowTop + 18f, labelPaint)
+            drawLeftEllipsizedText(canvas, accountId, valueStartX, rowTop + 18f, PAGE_WIDTH - SIDE_MARGIN, valuePaint)
+            rowTop += 18f
+        }
+
+        if (hasUserName) {
+            val labelText = "Account Name:"
+            val valueStartX = SIDE_MARGIN + labelPaint.measureText(labelText) + 8f
+            canvas.drawText(labelText, SIDE_MARGIN, rowTop + 18f, labelPaint)
+            drawLeftEllipsizedText(canvas, userName, valueStartX, rowTop + 18f, PAGE_WIDTH - SIDE_MARGIN, valuePaint)
+            rowTop += 18f
+        }
+
+        val rowBottom = rowTop + 8f
         canvas.drawLine(SIDE_MARGIN, rowBottom, PAGE_WIDTH - SIDE_MARGIN, rowBottom, linePaint)
 
         return rowBottom

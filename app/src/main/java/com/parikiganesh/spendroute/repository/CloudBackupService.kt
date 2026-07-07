@@ -27,6 +27,8 @@ class CloudBackupService @Inject constructor(
 
     fun currentUserId(): String? = firebaseAuth.currentUser?.uid
 
+    fun currentUserEmail(): String? = firebaseAuth.currentUser?.email
+
     /**
      * Uploads local transactions to cloud Firestore with selective encryption.
      *

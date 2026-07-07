@@ -37,17 +37,21 @@ class TransactionRepository @Inject constructor(
     }
 
     // Insert transaction
-    suspend fun insertTransaction(transaction: Transaction) {
+    fun insertTransaction(transaction: Transaction) {
         val previous = transactionsState.value
-        ensureOnline()
-        transactionsState.value = listOf(transaction) + previous.filterNot { it.id == transaction.id }
-        try {
-            val created = cloudBackupService.createTransactionWithSequentialId(transaction)
-            transactionsState.value = listOf(created) +
-                transactionsState.value.filterNot { it.id == transaction.id || it.id == created.id }
-        } catch (e: Exception) {
-            transactionsState.value = previous
-            throw e
+        val optimistic = listOf(transaction) + previous.filterNot { it.id == transaction.id }
+        transactionsState.value = optimistic
+
+        // Keep save UX instant; cloud ID assignment/sync runs in background.
+        scope.launch {
+            try {
+                val created = cloudBackupService.createTransactionWithSequentialId(transaction)
+                val current = transactionsState.value
+                transactionsState.value = listOf(created) +
+                    current.filterNot { it.id == transaction.id || it.id == created.id }
+            } catch (_: Exception) {
+                transactionsState.value = previous
+            }
         }
     }
 

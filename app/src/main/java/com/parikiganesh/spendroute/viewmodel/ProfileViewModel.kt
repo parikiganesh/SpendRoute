@@ -256,7 +256,8 @@ class ProfileViewModel @Inject constructor(
                 val fileUri = PdfExporter.exportTransactionsToPDF(
                     context,
                     _state.value.allTransactions,
-                    _state.value.userName
+                    _state.value.userName,
+                    cloudBackupService.currentUserEmail().orEmpty()
                 )
                 println("DEBUG: PDF export returned URI: $fileUri")
                 
