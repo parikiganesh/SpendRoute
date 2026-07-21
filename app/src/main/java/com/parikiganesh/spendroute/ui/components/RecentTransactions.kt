@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -52,6 +55,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+import coil.compose.AsyncImage
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.ui.graphics.asImageBitmap
 import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.data.model.CategoryConstants
 import com.parikiganesh.spendroute.data.UserPreferences
@@ -148,6 +157,7 @@ private fun SwipeableTransactionCard(
     val swipeOffset = remember { Animatable(0f) }
     val showDeleteDialog = remember { mutableStateOf(false) }
     val showDetailSheet = remember { mutableStateOf(false) }
+    val showFullscreenImage = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val cornerRadius = 15.dp
     val scope = rememberCoroutineScope()
@@ -221,148 +231,264 @@ private fun SwipeableTransactionCard(
             sheetState = sheetState,
             containerColor = Color.White
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Header
-                Text(
-                    text = stringResource(R.string.transaction_details),
-                    style = LocalTypography.current.titleLargeSemibold,
-                    color = Color(0xFF1C1B1F)
-                )
-                
-                // Category and Icon
-                Row(
+            // Fullscreen Image Viewer (inside sheet, only shows when tapped)
+            if (showFullscreenImage.value) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .clickable { showFullscreenImage.value = false },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
+                    val receiptUrl = transaction.receiptImageUrl.orEmpty()
+                    val decodedBitmap = remember(receiptUrl) {
+                        if (!receiptUrl.startsWith("data:image")) {
+                            null
+                        } else {
+                            runCatching {
+                                val encoded = receiptUrl.substringAfter(',', "")
+                                val bytes = Base64.decode(encoded, Base64.DEFAULT)
+                                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                            }.getOrNull()
+                        }
+                    }
+
+                    if (decodedBitmap != null) {
+                        Image(
+                            bitmap = decodedBitmap.asImageBitmap(),
+                            contentDescription = stringResource(R.string.receipt),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        AsyncImage(
+                            model = receiptUrl,
+                            contentDescription = stringResource(R.string.receipt),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    // Close button
+                    Button(
+                        onClick = { showFullscreenImage.value = false },
                         modifier = Modifier
-                            .size(48.dp)
-                            .background(Color(0xFFB8B3E5), CircleShape),
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Black.copy(alpha = 0.7f)
+                        ),
+                        shape = CircleShape
                     ) {
                         Icon(
-                            imageVector = CategoryConstants.getCategoryIcon(transaction.category),
-                            contentDescription = transaction.category,
-                            tint = Color.Black,
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.close),
+                            tint = Color.White,
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    Column {
-                        Text(
-                            text = transaction.category,
-                            style = LocalTypography.current.bodyLargeSemibold,
-                            color = Color(0xFF1C1B1F)
-                        )
+                }
+            } else {
+                // Detail sheet content (shown when not viewing fullscreen)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Header
+                    Text(
+                        text = stringResource(R.string.transaction_details),
+                        style = LocalTypography.current.titleLargeSemibold,
+                        color = Color(0xFF1C1B1F)
+                    )
+
+                    // Category and Icon
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(Color(0xFFB8B3E5), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = CategoryConstants.getCategoryIcon(transaction.category),
+                                contentDescription = transaction.category,
+                                tint = Color.Black,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = transaction.category,
+                                style = LocalTypography.current.bodyLargeSemibold,
+                                color = Color(0xFF1C1B1F)
+                            )
+                        }
                     }
-                }
-                
-                // Amount
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.amount),
-                        style = LocalTypography.current.bodyMediumRegular,
-                        color = Color(0xFF9E9E9E)
-                    )
-                    Text(
-                        text = if (transaction.isIncome) "+Rs.${transaction.amount.toInt()}" else "-Rs.${transaction.amount.toInt()}",
-                        style = LocalTypography.current.bodyLargeSemibold,
-                        color = if (transaction.isIncome) Color(0xFF4CAF50) else Color(0xFFE53935)
-                    )
-                }
-                
-                // Date
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.date),
-                        style = LocalTypography.current.bodyMediumRegular,
-                        color = Color(0xFF9E9E9E)
-                    )
-                    Text(
-                        text = transaction.date,
-                        style = LocalTypography.current.bodyMediumPrimary,
-                        color = Color(0xFF1C1B1F)
-                    )
-                }
-                
-                // Time
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.time),
-                        style = LocalTypography.current.bodyMediumRegular,
-                        color = Color(0xFF9E9E9E)
-                    )
-                    Text(
-                        text = transaction.time,
-                        style = LocalTypography.current.bodyMediumPrimary,
-                        color = Color(0xFF1C1B1F)
-                    )
-                }
-                
-                // Notes (if present)
-                if (!transaction.note.isNullOrEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                    // Amount
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = stringResource(R.string.notes),
+                            text = stringResource(R.string.amount),
                             style = LocalTypography.current.bodyMediumRegular,
                             color = Color(0xFF9E9E9E)
                         )
                         Text(
-                            text = (transaction.note as String?).orEmpty(),
-                            style = LocalTypography.current.bodyMediumRegular,
-                            color = Color(0xFF1C1B1F),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
-                                .padding(12.dp)
+                            text = if (transaction.isIncome) "+Rs.${transaction.amount.toInt()}" else "-Rs.${transaction.amount.toInt()}",
+                            style = LocalTypography.current.bodyLargeSemibold,
+                            color = if (transaction.isIncome) Color(0xFF4CAF50) else Color(0xFFE53935)
                         )
                     }
+
+                    // Date
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.date),
+                            style = LocalTypography.current.bodyMediumRegular,
+                            color = Color(0xFF9E9E9E)
+                        )
+                        Text(
+                            text = transaction.date,
+                            style = LocalTypography.current.bodyMediumPrimary,
+                            color = Color(0xFF1C1B1F)
+                        )
+                    }
+
+                    // Time
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.time),
+                            style = LocalTypography.current.bodyMediumRegular,
+                            color = Color(0xFF9E9E9E)
+                        )
+                        Text(
+                            text = transaction.time,
+                            style = LocalTypography.current.bodyMediumPrimary,
+                            color = Color(0xFF1C1B1F)
+                        )
+                    }
+
+                    // Notes (if present)
+                    if (!transaction.note.isNullOrEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.notes),
+                                style = LocalTypography.current.bodyMediumRegular,
+                                color = Color(0xFF9E9E9E)
+                            )
+                            Text(
+                                text = (transaction.note as String?).orEmpty(),
+                                style = LocalTypography.current.bodyMediumRegular,
+                                color = Color(0xFF1C1B1F),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                                    .padding(12.dp)
+                            )
+                        }
+                    }
+
+                     // Receipt Image (if present)
+                     if (!transaction.receiptImageUrl.isNullOrEmpty()) {
+                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                             Text(
+                                 text = stringResource(R.string.receipt),
+                                 style = LocalTypography.current.bodyMediumRegular,
+                                 color = Color(0xFF9E9E9E)
+                             )
+                             Box(
+                                 modifier = Modifier
+                                     .fillMaxWidth()
+                                     .height(200.dp)
+                                     .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                                     .clip(RoundedCornerShape(12.dp))
+                                     .clickable { showFullscreenImage.value = true }
+                             ) {
+                                 val receiptUrl = transaction.receiptImageUrl
+                                 val decodedBitmap = remember(receiptUrl) {
+                                     if (!receiptUrl.startsWith("data:image")) {
+                                         null
+                                     } else {
+                                         runCatching {
+                                             val encoded = receiptUrl.substringAfter(',', "")
+                                             val bytes = Base64.decode(encoded, Base64.DEFAULT)
+                                             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                         }.getOrNull()
+                                     }
+                                 }
+                                 if (decodedBitmap != null) {
+                                     Image(
+                                         bitmap = decodedBitmap.asImageBitmap(),
+                                         contentDescription = stringResource(R.string.receipt),
+                                         modifier = Modifier
+                                             .fillMaxWidth()
+                                             .height(200.dp),
+                                         contentScale = ContentScale.Crop
+                                     )
+                                 } else {
+                                     AsyncImage(
+                                         model = receiptUrl,
+                                         contentDescription = stringResource(R.string.receipt),
+                                         modifier = Modifier
+                                             .fillMaxWidth()
+                                             .height(200.dp),
+                                         contentScale = ContentScale.Crop
+                                     )
+                                 }
+                             }
+                         }
+                     }
+
+                    // Close button
+                    Button(
+                        onClick = { showDetailSheet.value = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF5B4B9B)
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(R.string.close),
+                            style = LocalTypography.current.bodyMediumPrimary,
+                            color = Color.White
+                        )
+                    }
+
+                    // Spacer for bottom padding
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                
-                // Close button
-                Button(
-                    onClick = { showDetailSheet.value = false },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF5B4B9B)
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.close),
-                        style = LocalTypography.current.bodyMediumPrimary,
-                        color = Color.White
-                    )
-                }
-                
-                // Spacer for bottom padding
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()

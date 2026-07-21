@@ -7,6 +7,8 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.Timestamp
 import com.parikiganesh.spendroute.data.model.Transaction
 import kotlinx.coroutines.channels.awaitClose
+import android.util.Log
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
@@ -392,6 +394,7 @@ class CloudBackupService @Inject constructor(
             "time" to transaction.time,
             "isIncome" to transaction.isIncome,
             "note" to transaction.note?.let { cloudEncryptionService.encryptForUser(uid, it) },
+            "receiptImageUrl" to transaction.receiptImageUrl,
             "timestamp" to Timestamp.now()
         )
     }
@@ -433,6 +436,7 @@ class CloudBackupService @Inject constructor(
         val time = data["time"] as? String ?: return null
         val isIncome = data["isIncome"] as? Boolean ?: return null
         val note = decodeStringField(uid, data["note"])
+        val receiptImageUrl = data["receiptImageUrl"] as? String
 
         return Transaction(
             id = id,
@@ -441,7 +445,8 @@ class CloudBackupService @Inject constructor(
             date = date,
             time = time,
             isIncome = isIncome,
-            note = note
+            note = note,
+            receiptImageUrl = receiptImageUrl
         )
     }
 

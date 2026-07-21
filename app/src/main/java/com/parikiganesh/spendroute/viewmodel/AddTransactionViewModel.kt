@@ -23,6 +23,7 @@ data class AddTransactionFormState(
     val amount: String = "",
     val selectedCategory: String? = null,
     val note: String = "",
+    val receiptImageUri: String? = null,
     val selectedDate: String = "", // Will be set to current date in ViewModel init
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val isLoading: Boolean = false,
@@ -61,6 +62,13 @@ class AddTransactionViewModel @Inject constructor(
      */
     fun updateNote(note: String) {
         _formState.value = _formState.value.copy(note = note)
+    }
+
+    /**
+     * Update/clear attached receipt URI.
+     */
+    fun updateReceiptUri(receiptUri: String?) {
+        _formState.value = _formState.value.copy(receiptImageUri = receiptUri)
     }
 
     /**
@@ -123,6 +131,7 @@ class AddTransactionViewModel @Inject constructor(
             date = state.selectedDate,
             time = DateTimeUtils.getCurrentTime(),
             note = state.note.ifEmpty { null },
+            receiptImageUrl = state.receiptImageUri,
             isIncome = state.transactionType == TransactionType.INCOME
         )
 
@@ -136,6 +145,10 @@ class AddTransactionViewModel @Inject constructor(
             } catch (e: Exception) {
                 val message = if (e is IOException && e.message == "No internet connection") {
                     "No internet connection"
+                } else if (e.message?.contains("Firebase Storage bucket is not initialized", ignoreCase = true) == true) {
+                    "Receipt upload is not configured in Firebase Storage yet. Please enable Storage in Firebase Console."
+                } else if (e.message?.contains("Object does not exist at location", ignoreCase = true) == true) {
+                    "Receipt upload is still processing. Please try saving again."
                 } else {
                     "Error saving transaction: ${e.message}"
                 }
@@ -166,6 +179,7 @@ class AddTransactionViewModel @Inject constructor(
             date = state.selectedDate,
             time = DateTimeUtils.getCurrentTime(),
             note = state.note.ifEmpty { null },
+            receiptImageUrl = state.receiptImageUri,
             isIncome = state.transactionType == TransactionType.INCOME
         )
 
@@ -179,6 +193,10 @@ class AddTransactionViewModel @Inject constructor(
             } catch (e: Exception) {
                 val message = if (e is IOException && e.message == "No internet connection") {
                     "No internet connection"
+                } else if (e.message?.contains("Firebase Storage bucket is not initialized", ignoreCase = true) == true) {
+                    "Receipt upload is not configured in Firebase Storage yet. Please enable Storage in Firebase Console."
+                } else if (e.message?.contains("Object does not exist at location", ignoreCase = true) == true) {
+                    "Receipt upload is still processing. Please try saving again."
                 } else {
                     "Error updating transaction: ${e.message}"
                 }
@@ -198,6 +216,7 @@ class AddTransactionViewModel @Inject constructor(
             amount = transaction.amount.toString(),
             selectedCategory = transaction.category,
             note = transaction.note ?: "",
+            receiptImageUri = transaction.receiptImageUrl,
             selectedDate = transaction.date,
             transactionType = if (transaction.isIncome) TransactionType.INCOME else TransactionType.EXPENSE
         )

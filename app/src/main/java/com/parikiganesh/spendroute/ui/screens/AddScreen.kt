@@ -1,7 +1,14 @@
 package com.parikiganesh.spendroute.ui.screens
 
+import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,11 +34,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -59,6 +68,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.filled.Delete
+import androidx.core.content.FileProvider
 import com.parikiganesh.spendroute.R
 import com.parikiganesh.spendroute.data.model.Transaction
 import com.parikiganesh.spendroute.data.model.TransactionType
@@ -70,6 +81,7 @@ import com.parikiganesh.spendroute.viewmodel.AddTransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,6 +126,26 @@ fun AddTransactionScreen(
     val categories = CategoryConstants.getCategories(state.transactionType)
     val isEditing = transactionToEdit != null
     val context = LocalContext.current
+    val showReceiptSourceDialog = remember { mutableStateOf(false) }
+    val pendingCameraUri = remember { mutableStateOf<Uri?>(null) }
+
+    val receiptPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        viewModel.updateReceiptUri(uri?.toString())
+    }
+    val receiptCaptureFailedText = stringResource(R.string.receipt_capture_failed)
+    val receiptCaptureUnavailableText = stringResource(R.string.receipt_capture_unavailable)
+    val cameraReceiptLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            viewModel.updateReceiptUri(pendingCameraUri.value?.toString())
+        } else {
+            Toast.makeText(context, receiptCaptureFailedText, Toast.LENGTH_SHORT).show()
+        }
+        pendingCameraUri.value = null
+    }
     val transactionSavedText = stringResource(R.string.transaction_saved)
     val transactionUpdatedText = stringResource(R.string.transaction_updated)
 
@@ -135,6 +167,67 @@ fun AddTransactionScreen(
             onNavigateToHome()
             viewModel.clearSaveCompleted()
         }
+    }
+
+    if (showReceiptSourceDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showReceiptSourceDialog.value = false },
+            title = { Text(text = stringResource(R.string.attach_receipt_optional)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            showReceiptSourceDialog.value = false
+                            val captureUri = createReceiptTempUri(context)
+                            if (captureUri == null) {
+                                Toast.makeText(context, receiptCaptureUnavailableText, Toast.LENGTH_SHORT).show()
+                                return@OutlinedButton
+                            }
+                            pendingCameraUri.value = captureUri
+                            cameraReceiptLauncher.launch(captureUri)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CameraAlt,
+                            contentDescription = null,
+                            tint = Color(0xFF5B4B9B)
+                        )
+                        Text(
+                            text = stringResource(R.string.take_photo),
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = Color(0xFF5B4B9B)
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            showReceiptSourceDialog.value = false
+                            receiptPickerLauncher.launch("image/*")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AttachFile,
+                            contentDescription = null,
+                            tint = Color(0xFF5B4B9B)
+                        )
+                        Text(
+                            text = stringResource(R.string.choose_from_photos),
+                            modifier = Modifier.padding(start = 8.dp),
+                            color = Color(0xFF5B4B9B)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showReceiptSourceDialog.value = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     Column(
@@ -444,6 +537,74 @@ fun AddTransactionScreen(
                 }
             }
 
+            // Receipt attachment card
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.attach_receipt_optional),
+                            style = LocalTypography.current.bodyLargeNormal,
+                            color = Color.DarkGray
+                        )
+
+                        OutlinedButton(
+                            onClick = { showReceiptSourceDialog.value = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.AttachFile,
+                                contentDescription = null,
+                                tint = Color(0xFF5B4B9B)
+                            )
+                            Text(
+                                text = if (state.receiptImageUri == null) {
+                                    stringResource(R.string.choose_receipt_image)
+                                } else {
+                                    stringResource(R.string.change_receipt_image)
+                                },
+                                modifier = Modifier.padding(start = 8.dp),
+                                color = Color(0xFF5B4B9B)
+                            )
+                        }
+
+                        state.receiptImageUri?.let {
+                            Text(
+                                text = stringResource(R.string.receipt_attached),
+                                style = LocalTypography.current.bodySmallNormal,
+                                color = Color(0xFF2E7D32)
+                            )
+
+                            OutlinedButton(
+                                onClick = { viewModel.updateReceiptUri(null) },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = null,
+                                    tint = Color(0xFFC62828)
+                                )
+                                Text(
+                                    text = stringResource(R.string.remove_receipt),
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    color = Color(0xFFC62828)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Date Card with DatePicker Dialog
             item {
                 if (showDatePicker.value) {
@@ -540,6 +701,14 @@ fun AddTransactionScreen(
             }
         }
     }
+}
+
+private fun createReceiptTempUri(context: Context): Uri? {
+    return runCatching {
+        val receiptsDir = File(context.cacheDir, "receipts").apply { mkdirs() }
+        val tempFile = File.createTempFile("receipt_", ".jpg", receiptsDir)
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", tempFile)
+    }.getOrNull()
 }
 
 @Preview(showBackground = true)

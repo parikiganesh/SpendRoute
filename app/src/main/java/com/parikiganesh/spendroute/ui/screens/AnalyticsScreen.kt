@@ -498,10 +498,13 @@ private fun ExpenseCategoryItem(
 private fun getCategoryColor(categoryName: String): Color {
     return when (categoryName.lowercase()) {
         "food" -> Color(0xFFFF6B6B)        // Red
+        "groceries" -> Color(0xFF7C6FD4)        // Purple
+        "fuel" -> Color(0xFF9D7C6F)        // Brown
         "travel" -> Color(0xFF4ECDC4)       // Teal
         "entertainment" -> Color(0xFFFFD93D) // Yellow
         "shopping" -> Color(0xFF6BCB77)      // Green
         "bills" -> Color(0xFF4D96FF)         // Blue
+        "rent" -> Color(0xFFFF9F43)          // Orange
         "healthcare" -> Color(0xFFFF6D9D)   // Pink
         "education" -> Color(0xFF9D7C6F)    // Brown
         "utilities" -> Color(0xFF7C6FD4)    // Purple

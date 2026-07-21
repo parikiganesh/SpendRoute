@@ -22,7 +22,8 @@ data class Transaction(
     val time: String,
     val isIncome: Boolean,
     val icon: Int? = null,
-    val note: String? = null  // Optional note field for transactions
+    val note: String? = null,  // Optional note field for transactions
+    val receiptImageUrl: String? = null
 )
 
 @Suppress("UNUSED")

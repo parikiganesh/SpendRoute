@@ -1,8 +1,13 @@
 package com.parikiganesh.spendroute.repository
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Base64
+import android.util.Log
 import com.parikiganesh.spendroute.data.model.Transaction
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
@@ -37,21 +43,21 @@ class TransactionRepository @Inject constructor(
     }
 
     // Insert transaction
-    fun insertTransaction(transaction: Transaction) {
+    suspend fun insertTransaction(transaction: Transaction) {
+        ensureOnline()
+        val transactionWithReceipt = resolveReceiptUrlIfNeeded(transaction)
         val previous = transactionsState.value
-        val optimistic = listOf(transaction) + previous.filterNot { it.id == transaction.id }
+        val optimistic = listOf(transactionWithReceipt) + previous.filterNot { it.id == transaction.id }
         transactionsState.value = optimistic
 
-        // Keep save UX instant; cloud ID assignment/sync runs in background.
-        scope.launch {
-            try {
-                val created = cloudBackupService.createTransactionWithSequentialId(transaction)
-                val current = transactionsState.value
-                transactionsState.value = listOf(created) +
-                    current.filterNot { it.id == transaction.id || it.id == created.id }
-            } catch (_: Exception) {
-                transactionsState.value = previous
-            }
+        try {
+            val created = cloudBackupService.createTransactionWithSequentialId(transactionWithReceipt)
+            val current = transactionsState.value
+            transactionsState.value = listOf(created) +
+                current.filterNot { it.id == transaction.id || it.id == created.id }
+        } catch (e: Exception) {
+            transactionsState.value = previous
+            throw e
         }
     }
 
@@ -59,11 +65,12 @@ class TransactionRepository @Inject constructor(
     suspend fun updateTransaction(transaction: Transaction) {
         val previous = transactionsState.value
         ensureOnline()
+        val transactionWithReceipt = resolveReceiptUrlIfNeeded(transaction)
         transactionsState.value = previous.map { existing ->
-            if (existing.id == transaction.id) transaction else existing
+            if (existing.id == transaction.id) transactionWithReceipt else existing
         }
         try {
-            cloudBackupService.upsertTransaction(transaction)
+            cloudBackupService.upsertTransaction(transactionWithReceipt)
         } catch (e: Exception) {
             transactionsState.value = previous
             throw e
@@ -93,6 +100,54 @@ class TransactionRepository @Inject constructor(
         transactionsState.value = transactions
     }
 
+    private suspend fun resolveReceiptUrlIfNeeded(transaction: Transaction): Transaction {
+        val tag = "TransactionRepository"
+        val rawReceipt = transaction.receiptImageUrl?.trim().orEmpty()
+        if (rawReceipt.isEmpty()) {
+            return transaction.copy(receiptImageUrl = null)
+        }
+        if (
+            rawReceipt.startsWith("https://") ||
+            rawReceipt.startsWith("http://") ||
+            rawReceipt.startsWith("gs://") ||
+            rawReceipt.startsWith("data:image")
+        ) {
+            return transaction
+        }
+
+        return try {
+            Log.d(tag, "Attempting to upload receipt for transaction ${transaction.id}")
+            val uri = Uri.parse(rawReceipt)
+            val dataUri = encodeReceiptAsDataUri(uri)
+                ?: return transaction.copy(receiptImageUrl = null)
+            Log.d(tag, "Receipt encoded for Firestore (${dataUri.length} chars)")
+            transaction.copy(receiptImageUrl = dataUri)
+        } catch (e: Exception) {
+            Log.e(tag, "Receipt upload failed: ${e.message}", e)
+            transaction.copy(receiptImageUrl = null)
+        }
+    }
+
+    private fun encodeReceiptAsDataUri(uri: Uri): String? {
+        val rawBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+        val bitmap = BitmapFactory.decodeByteArray(rawBytes, 0, rawBytes.size) ?: return null
+
+        val output = ByteArrayOutputStream()
+        var quality = 85
+        do {
+            output.reset()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, output)
+            quality -= 10
+        } while (output.size() > MAX_RECEIPT_BYTES && quality >= 25)
+
+        if (output.size() > MAX_RECEIPT_BYTES) {
+            throw IOException("Receipt image is too large for Firestore. Please choose a smaller image.")
+        }
+
+        val base64 = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+        return "data:image/jpeg;base64,$base64"
+    }
+
 
     private fun ensureOnline() {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -104,6 +159,12 @@ class TransactionRepository @Inject constructor(
         if (!hasInternet) {
             throw IOException("No internet connection")
         }
+    }
+
+    private companion object {
+        // Keep binary bytes small so encoded value safely fits Firestore document limits.
+        // 200 KB compresses to ~265 KB Base64, manageable in Firestore console while maintaining receipt quality
+        const val MAX_RECEIPT_BYTES = 200 * 1024
     }
 }
 

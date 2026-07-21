@@ -18,6 +18,15 @@
     <string name="enter_amount">Enter amount</string>
     <string name="source">Source</string>
     <string name="note_optional">Note (optional)</string>
+    <string name="attach_receipt_optional">Attach receipt (optional)</string>
+    <string name="choose_receipt_image">Choose receipt image</string>
+    <string name="change_receipt_image">Change receipt image</string>
+    <string name="take_photo">Take photo</string>
+    <string name="choose_from_photos">Choose from photos</string>
+    <string name="receipt_attached">Receipt attached</string>
+    <string name="receipt_capture_failed">Could not capture receipt image.</string>
+    <string name="receipt_capture_unavailable">Camera is unavailable on this device.</string>
+    <string name="remove_receipt">Remove receipt</string>
     <string name="note_placeholder_income">e.g. Freelance project</string>
     <string name="note_placeholder_expense">e.g. Dinner with friends</string>
     <string name="date">Date</string>
@@ -31,6 +40,7 @@
     <string name="transaction_updated">Transaction updated successfully!</string>
 
     <!-- Transactions Screen -->
+    <string name="receipt">Receipt</string>
     <string name="transactions">Transactions</string>
     <string name="income_expenses">Income &amp; expenses in one place</string>
     <string name="search_transactions">Search transactions...</string>

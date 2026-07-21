@@ -18,8 +18,8 @@ android {
         applicationId = "com.parikiganesh.spendroute"
         minSdk = 24
         targetSdk = 36
-        versionCode = 14
-        versionName = "2.0.8"
+        versionCode = 15
+        versionName = "2.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -65,7 +65,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
     ksp("com.google.dagger:hilt-compiler:2.59.2")
     testImplementation(libs.junit)
